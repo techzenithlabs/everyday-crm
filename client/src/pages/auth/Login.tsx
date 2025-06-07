@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import { motion, useAnimation } from "framer-motion";
 import bgImage from "../../assets/bg-login.jpg";
 import toast from "react-hot-toast";
@@ -10,6 +10,7 @@ const Login = () => {
   const buttonControls = useAnimation();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +32,7 @@ const Login = () => {
       return;
     }
 
-    console.log(form);
+     navigate("/dashboard");
   };
 
   useEffect(() => {
