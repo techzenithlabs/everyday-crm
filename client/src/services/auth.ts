@@ -1,6 +1,7 @@
 import api from "../api";
 import { AxiosError } from "axios";
 
+
 interface RegisterPayload {
   name: string;
   email: string;
