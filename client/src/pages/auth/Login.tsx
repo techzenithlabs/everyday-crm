@@ -6,7 +6,10 @@ import toast from "react-hot-toast";
 import { loginUser } from "../../services/auth";
 import { login } from "../../redux/slices/authSlice";
 import { AxiosError } from "axios";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../redux/store";
+
+
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -18,6 +21,13 @@ const Login = () => {
   const passwordRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const token = useSelector((state: RootState) => state.auth.token);
+  // Redirect to dashboard if already logged in 
+  useEffect(() => {
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [token, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
