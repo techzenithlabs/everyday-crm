@@ -27,6 +27,7 @@ export const loginUser = async (email: string, password: string) => {
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
+    console.log(err)
     throw err.response?.data || { message: "Login failed" };
   }
 };

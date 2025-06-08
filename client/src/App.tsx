@@ -4,6 +4,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import AppShell from './layout/AppShell';
 import Dashboard from './pages/Dashboard';
+import PrivateRoute from './routes/PrivateRoute';
 
 function App() {
   return (
@@ -18,9 +19,11 @@ function App() {
          <Route
           path="/dashboard"
           element={
-            <AppShell>
+          <PrivateRoute>
+            <AppShell>             
               <Dashboard />
-            </AppShell>
+              </AppShell>
+             </PrivateRoute>
           }
         />
    
