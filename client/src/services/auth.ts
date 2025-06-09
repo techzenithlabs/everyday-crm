@@ -26,8 +26,7 @@ export const loginUser = async (email: string, password: string) => {
     const response = await api.post("/login", { email, password });
     return response.data;
   } catch (error) {
-    const err = error as AxiosError<{ message: string }>;
-    console.log(err)
+    const err = error as AxiosError<{ message: string }>;    
     throw err.response?.data || { message: "Login failed" };
   }
 };

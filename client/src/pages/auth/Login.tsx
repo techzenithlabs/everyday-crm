@@ -9,10 +9,7 @@ import { AxiosError } from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
 
-interface ErrorResponse {
-  message?: string;
-  errors?: Record<string, string[]>;
-}
+
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -33,43 +30,41 @@ const Login = () => {
   }, [token, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
+    const newErrors: { email?: boolean; password?: boolean } = {};
+    if (!form.email) newErrors.email = true;
+    if (!form.password) newErrors.password = true;
+    setErrors(newErrors);
 
-  const newErrors: { email?: boolean; password?: boolean } = {};
-  if (!form.email) newErrors.email = true;
-  if (!form.password) newErrors.password = true;
-  setErrors(newErrors);
-
-  if (Object.keys(newErrors).length > 0) {
-    toast.error("Please fill in all required fields.");
-    return;
-  }
-
-  try {
-    const data = await loginUser(form.email, form.password);
-    dispatch(login({ token: data.token, user: data.user }));
-    toast.success("Login successfully!");
-    navigate("/dashboard");
-  } catch (error: unknown) {
-     const err = error as AxiosError<ErrorResponse>;
-
-  if (err.response) {
-      const { status, data } = err.response;
-
-      if (status === 422 && data.errors) {
-        const firstError = Object.values(data.errors)[0];
-        toast.error(firstError?.[0] || "Validation error");
-      } else if (data.message) {
-        toast.error(data.message);
+    const missingFields = Object.keys(newErrors);
+    if (missingFields.length > 0) {
+      if (missingFields.length === 2) {
+        toast.error("Please fill in both email and password.");
       } else {
-        toast.error("An unknown error occurred.");
+        const fieldName =
+          missingFields[0].charAt(0).toUpperCase() + missingFields[0].slice(1);
+        toast.error(`Please fill in the ${fieldName}.`);
       }
-    } else {
-      toast.error("Network/server error. Please try again.");
+      if (newErrors.email && emailRef.current) emailRef.current.focus();
+      else if (newErrors.password && passwordRef.current)
+        passwordRef.current.focus();
+      return;
     }
-  }
-};
 
+    try {
+      const data = await loginUser(form.email, form.password);
+      dispatch(login({ token: data.token, user: data.user }));
+      toast.success("Login successfully!");
+      navigate("/dashboard");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      const geterror = err      
+      if(geterror.status==false){
+        toast.error(geterror.message);
+      }
+      
+    }
+  };
 
   useEffect(() => {
     buttonControls

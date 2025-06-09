@@ -53,18 +53,21 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json([
+                'status'=>false,
                 'message' => 'Invalid email address.',
             ], 401);
         }
 
         if (!Hash::check($request->password, $user->password)) {
             return response()->json([
+                'status'=>false,
                 'message' => 'Incorrect password.',
             ], 401);
         }
 
         if ($user->status != 1) {
             return response()->json([
+                'status'=>false,
                 'message' => 'Your account is inactive. Please contact admin.',
             ], 403);
         }
@@ -72,6 +75,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
+            'status'=>true,
             'message' => 'Login successful',
             'token' => $token,
             'user' => [
