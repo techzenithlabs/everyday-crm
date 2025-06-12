@@ -9,6 +9,6 @@ interface Props {
 
 const PrivateRoute = ({ children }: Props) => {
   const token = useSelector((state: RootState) => state.auth.token);
-  return token ? <>{children}</> : <Navigate to="/login" />;
+  return token ? <>{children}</> : <Navigate to="/login" replace />;
 };
 export default PrivateRoute;

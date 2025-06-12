@@ -31,3 +31,15 @@ export const loginUser = async (email: string, password: string) => {
   }
 };
 
+export const logoutUser = async (token: string) => {
+  return await api.post(
+    "/logout",
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};
+
