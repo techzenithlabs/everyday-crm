@@ -8,7 +8,9 @@ const DashboardCards = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
       {cards.map((card) => (
-        <div key={card.title} className="bg-gray-100 p-6 rounded-lg shadow-md">
+        <div
+          key={card.title}
+          className="bg-[#ecf0f1] p-5 rounded-lg shadow-sm flex-1 min-w-[300px]">
           <h3 className="text-lg font-bold text-gray-800 mb-2">{card.title}</h3>
           <p className="text-gray-600">{card.value}</p>
         </div>
@@ -16,4 +18,5 @@ const DashboardCards = () => {
     </div>
   );
 };
+
 export default DashboardCards;
