@@ -36,7 +36,7 @@ const Dashboard = () => {
       <div className="flex-1 p-8 bg-gray-50 min-h-screen">
         {/* Header: Dashboard + Admin Dropdown */}
         <div className="flex justify-between items-center mb-4 relative">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Home</h1>
 
           <div className="relative">
             <button
