@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Password;
 use App\Models\User;
+use Illuminate\Mail\Mailables\Headers;
 
 class AuthController extends Controller
 {
@@ -97,20 +98,34 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 
-  
+
     public function sendResetLinkEmail(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        try{
+            $request->validate(['email' => 'required|email']);
+            $checkemail= User::where('email', $request->email)->first();
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return response()->json(['message' => __($status)], 200);
-        }
+            if(!$checkemail){
+                return response()->json(['status'=>false,'message' => 'Sorry user not found with this email address.'], 404);
+            }
+
+
+            $status = Password::sendResetLink(
+                $request->only('email')
+            );
+
+            if ($status === Password::RESET_LINK_SENT) {
+                return response()->json(['message' => __($status)], 200);
+         }
 
         return response()->json(['message' => __($status)], 400);
+
+        }catch(\Exception $e){
+            return response()->json(['message' =>$e->getMessage()], 500);
+        }
+
+
     }
 
 }
