@@ -59,7 +59,7 @@ const Login = () => {
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
       const geterror = err      
-      if(geterror.status==false){
+      if (geterror && !geterror.status && typeof geterror.message === 'string') {
         toast.error(geterror.message);
       }
       
@@ -164,6 +164,16 @@ const Login = () => {
             Register
           </Link>
         </p>
+        
+        <p className="text-sm mt-4 text-center text-gray-600">
+          <Link
+            to="/forgotpassword"
+            className="text-blue-700 font-medium hover:underline"
+          >
+            Forgot Password
+          </Link>
+          </p>
+        
       </motion.div>
     </div>
   );

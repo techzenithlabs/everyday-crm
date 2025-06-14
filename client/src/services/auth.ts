@@ -43,3 +43,13 @@ export const logoutUser = async (token: string) => {
   );
 };
 
+export const forgotPassword = async (email: string) => {
+  try {
+    const response = await api.post("/forgot-password", { email });
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw err.response?.data || { message: "Failed to send reset password link." };
+  }
+};
+
