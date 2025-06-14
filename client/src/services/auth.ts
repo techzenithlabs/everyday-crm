@@ -9,6 +9,14 @@ interface RegisterPayload {
   role_id?: number; // optional if you're assigning on backend
 }
 
+interface UpdateProfilePayload {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password?: string;
+  password_confirmation?: string;
+}
+
 
 export const registerUser = async (form: RegisterPayload) => {
   try {
@@ -19,6 +27,41 @@ export const registerUser = async (form: RegisterPayload) => {
     throw err.response?.data || { message: "Registration failed" };
   }
 };
+
+// Fetch user profile
+export const getProfile = async (token: string) => {
+  try {
+    const response = await api.get("/profile", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw err.response?.data || { message: "Failed to fetch profile" };
+  }
+};
+
+// Update user profile
+interface UpdateProfilePayload {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password?: string;
+  password_confirmation?: string;
+}
+
+export const updateProfile = async (token: string, data: any) => {
+  const response = await api.put("/profile/update", data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+
+
 
 
 export const loginUser = async (email: string, password: string) => {
@@ -42,4 +85,7 @@ export const logoutUser = async (token: string) => {
     }
   );
 };
+
+
+
 

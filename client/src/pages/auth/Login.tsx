@@ -52,8 +52,8 @@ const Login = () => {
     }
 
     try {
-      const data = await loginUser(form.email, form.password);
-      dispatch(login({ token: data.token, user: data.user }));
+      const data = await loginUser(form.email, form.password);          
+      dispatch(login({ token: data.token, user:data.user}));
       toast.success("Login successfully!");
       navigate("/dashboard");
     } catch (error: unknown) {
