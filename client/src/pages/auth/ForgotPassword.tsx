@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, useAnimation } from "framer-motion";
 import toast from "react-hot-toast";
-import bgImage from "../../assets/bg-login.jpg";
+import logo from "../../assets/every-day-crm-png.png";
 import { forgotPassword } from "../../services/auth"; // make sure this matches your file
 import { AxiosError } from "axios";
 
@@ -47,80 +47,70 @@ const ForgotPassword = () => {
   }, []);
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gray-100"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          Everyday CRM
-        </h2>
+  <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+      <div className="text-center mb-6">
+        <img
+          src={logo }
+          alt="Everyday CRM Logo"
+          className="h-10 mx-auto mb-2"
+        />
+        <h2 className="text-xl font-semibold text-gray-800">Can’t log in?</h2>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <motion.input
-            ref={emailRef}
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => {
-              setForm({ ...form, email: e.target.value });
-              if (errors.email && e.target.value.trim() !== "") {
-                setErrors((prev) => ({ ...prev, email: false }));
-              }
-            }}
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 transition-all duration-300 ${
-              errors.email
-                ? "border-red-500 focus:ring-red-300"
-                : "border-gray-300 focus:ring-blue-500"
-            }`}
-            initial={{ x: -80, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-          />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <p className="text-sm text-gray-700">We’ll send a recovery link to</p>
+        <motion.input
+          ref={emailRef}
+          type="email"
+          placeholder="your@email.com"
+          value={form.email}
+          onChange={(e) => {
+            setForm({ ...form, email: e.target.value });
+            if (errors.email && e.target.value.trim() !== "") {
+              setErrors((prev) => ({ ...prev, email: false }));
+            }
+          }}
+          className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 transition-all duration-300 ${
+            errors.email
+              ? "border-red-500 focus:ring-red-300"
+              : "border-gray-300 focus:ring-blue-500"
+          }`}
+          initial={{ x: -80, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+        />
 
-          <motion.button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition"
-            initial={{ opacity: 0, y: 20 }}
-            animate={buttonControls}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Reset Password
-          </motion.button>
-        </form>
+        <motion.button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition"
+          initial={{ opacity: 0, y: 20 }}
+          animate={buttonControls}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          Send recovery link
+        </motion.button>
+      </form>
 
-        <p className="text-sm mt-4 text-center text-gray-600">
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-green-700 font-medium hover:underline"
-          >
-            Login
-          </Link>
-        </p>
+      <div className="text-sm mt-6 text-center text-gray-600">
+        <Link to="/login" className="text-blue-600 hover:underline">
+          Return to log in
+        </Link>
+      </div>
 
-        <p className="text-sm mt-4 text-center text-gray-600">
-          Don’t have an account?{" "}
-          <Link
-            to="/register"
-            className="text-blue-700 font-medium hover:underline"
-          >
-            Register
-          </Link>
-        </p>
-      </motion.div>
+      <div className="text-xs text-center text-gray-400 mt-6 border-t pt-4">
+        <p>© 2025 Everyday CRM</p>
+        <div className="space-x-2">
+          <Link to="#" className="hover:underline text-blue-600">Login help</Link>
+          <span>·</span>
+          <Link to="#" className="hover:underline text-blue-600">Contact Support</Link>
+        </div>
+      </div>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default ForgotPassword;

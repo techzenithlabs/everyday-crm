@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, useAnimation } from "framer-motion";
-import bgImage from "../../assets/bg-login.jpg";
+import logo from "../../assets/every-day-crm-png.png";
 import toast from "react-hot-toast";
 import { loginUser } from "../../services/auth";
 import { login } from "../../redux/slices/authSlice";
@@ -9,20 +9,16 @@ import { AxiosError } from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
 
-
-
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
-  const [errors, setErrors] = useState<{ email?: boolean; password?: boolean }>(
-    {}
-  );
+  const [errors, setErrors] = useState<{ email?: boolean; password?: boolean }>({});
   const buttonControls = useAnimation();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.token);
-  // Redirect to dashboard if already logged in 
+
   useEffect(() => {
     if (token) {
       navigate("/dashboard");
@@ -36,33 +32,23 @@ const Login = () => {
     if (!form.password) newErrors.password = true;
     setErrors(newErrors);
 
-    const missingFields = Object.keys(newErrors);
-    if (missingFields.length > 0) {
-      if (missingFields.length === 2) {
-        toast.error("Please fill in both email and password.");
-      } else {
-        const fieldName =
-          missingFields[0].charAt(0).toUpperCase() + missingFields[0].slice(1);
-        toast.error(`Please fill in the ${fieldName}.`);
-      }
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please fill in all required fields.");
       if (newErrors.email && emailRef.current) emailRef.current.focus();
-      else if (newErrors.password && passwordRef.current)
-        passwordRef.current.focus();
+      else if (newErrors.password && passwordRef.current) passwordRef.current.focus();
       return;
     }
 
     try {
-      const data = await loginUser(form.email, form.password);          
-      dispatch(login({ token: data.token, user:data.user}));
+      const data = await loginUser(form.email, form.password);
+      dispatch(login({ token: data.token, user: data.user }));
       toast.success("Login successfully!");
       navigate("/dashboard");
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
-      const geterror = err      
-      if (geterror && !geterror.status && typeof geterror.message === 'string') {
-        toast.error(geterror.message);
+      if (err && !err.status && typeof err.message === 'string') {
+        toast.error(err.message);
       }
-      
     }
   };
 
@@ -82,44 +68,38 @@ const Login = () => {
   }, []);
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gray-100"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          Everyday CRM
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        
+        {/* Logo & Heading */}
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-center mb-6"
+        >
+          <img src={logo} alt="Everyday CRM Logo" className="h-20 mx-auto mb-2" />
+          <h2 className="text-xl font-semibold text-gray-800">Log in to continue</h2>
+        </motion.div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+
           <motion.input
             ref={emailRef}
             type="email"
-            placeholder="Email"
+            placeholder="Enter your email"
             value={form.email}
             onChange={(e) => {
               setForm({ ...form, email: e.target.value });
-              if (errors.email && e.target.value.trim() !== "") {
-                setErrors((prev) => ({ ...prev, email: false }));
-              }
+              if (errors.email) setErrors((prev) => ({ ...prev, email: false }));
             }}
             className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
-              errors.email
-                ? "border-red-500 focus:ring-red-300"
-                : "border-gray-300"
+              errors.email ? "border-red-500 focus:ring-red-300" : "border-gray-300"
             }`}
-            initial={{ x: -80, opacity: 0 }}
+            initial={{ x: -60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
           />
 
           <motion.input
@@ -129,52 +109,80 @@ const Login = () => {
             value={form.password}
             onChange={(e) => {
               setForm({ ...form, password: e.target.value });
-              if (errors.password && e.target.value.trim() !== "") {
-                setErrors((prev) => ({ ...prev, password: false }));
-              }
+              if (errors.password) setErrors((prev) => ({ ...prev, password: false }));
             }}
             className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
-              errors.password
-                ? "border-red-500 focus:ring-red-300"
-                : "border-gray-300"
+              errors.password ? "border-red-500 focus:ring-red-300" : "border-gray-300"
             }`}
-            initial={{ x: 80, opacity: 0 }}
+            initial={{ x: 60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.9 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
           />
+
+          <div className="flex items-center space-x-2">
+            <input type="checkbox" id="remember" className="cursor-pointer" />
+            <label htmlFor="remember" className="text-sm text-gray-700 cursor-pointer">
+              Remember me
+            </label>
+          </div>
 
           <motion.button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={buttonControls}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Login
+            Continue
           </motion.button>
         </form>
 
-        <p className="text-sm mt-4 text-center text-gray-600">
-          Don’t have an account?{" "}
-          <Link
-            to="/register"
-            className="text-blue-700 font-medium hover:underline"
-          >
-            Register
-          </Link>
-        </p>
-        
-        <p className="text-sm mt-4 text-center text-gray-600">
-          <Link
-            to="/forgotpassword"
-            className="text-blue-700 font-medium hover:underline"
-          >
-            Forgot Password
-          </Link>
-          </p>
-        
-      </motion.div>
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-2 text-gray-500">Or continue with:</span>
+          </div>
+        </div>
+
+        {/* Social Login Buttons */}
+        <motion.div
+          className="space-y-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+        >
+          <button className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+            <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google" />
+            Google
+          </button>
+          <button className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+            <img src="https://img.icons8.com/color/16/000000/microsoft.png" alt="Microsoft" />
+            Microsoft
+          </button>
+          <button className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+            <img src="https://img.icons8.com/ios-filled/16/000000/mac-os.png" alt="Apple" />
+            Apple
+          </button>
+          <button className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+            <img src="https://img.icons8.com/color/16/000000/slack-new.png" alt="Slack" />
+            Slack
+          </button>
+        </motion.div>
+
+        {/* Footer Links */}
+        <div className="text-sm mt-6 text-center text-gray-600">
+          <Link to="/forgotpassword" className="text-blue-600 hover:underline mr-2">Can’t log in?</Link> ·
+          {/* <Link to="/register" className="text-blue-600 hover:underline ml-2">Create an account</Link> */}
+        </div>
+
+        <div className="text-xs text-center text-gray-400 mt-6">
+          <p>© 2025 Everyday CRM</p>
+        </div>
+      </div>
     </div>
   );
 };
