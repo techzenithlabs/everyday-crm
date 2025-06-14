@@ -78,7 +78,7 @@ const Login = () => {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-center mb-6"
         >
-          <img src={logo} alt="Everyday CRM Logo" className="h-20 mx-auto mb-2" />
+          <img src={logo} alt="Everyday CRM Logo" className="h-10 mx-auto mb-2" />
           <h2 className="text-xl font-semibold text-gray-800">Log in to continue</h2>
         </motion.div>
 
