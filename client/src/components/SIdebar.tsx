@@ -24,7 +24,7 @@ const Sidebar = () => {
   ];
 
    return (
-    <div className="bg-[#1d2939] text-white h-screen w-64 flex flex-col p-4">
+    <div className="bg-[#1d2939] text-white w-64 flex flex-col p-4 min-h-screen overflow-y-auto">
       <h2 className="text-2xl font-bold mb-6 text-teal-500">Everyday Patio</h2>
       <nav className="flex flex-col space-y-1">
         {menuItems.map((item) => (

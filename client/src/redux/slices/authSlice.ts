@@ -39,7 +39,13 @@
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       },
+      updateUser(state, action: PayloadAction<Partial<User>>) {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+        localStorage.setItem("user", JSON.stringify(state.user));
+      }
+    },
     },
   });
-  export const { login, logout } = authSlice.actions;
+  export const { login, logout,updateUser } = authSlice.actions;
   export default authSlice.reducer;

@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../redux/store";
 import { getProfile, updateProfile } from "../services/auth";
 import { useDispatch } from "react-redux";
-import { logout } from "../redux/slices/authSlice"; // existing
+import { logout,updateUser } from "../redux/slices/authSlice"; // existing
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
@@ -46,6 +46,8 @@ const Profile = () => {
         toast.error(response.message || "Failed to update profile");
         return;
       }
+
+      dispatch(updateUser({ first_name: form.first_name, last_name: form.last_name }));
 
       // Clear password fields
       setForm((prev) => ({

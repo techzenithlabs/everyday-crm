@@ -15,6 +15,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const token = useSelector((state: RootState) => state.auth.token);
   const user = useSelector((state: RootState) => state.auth.user); // optional
+  const userame = user?.first_name +' '+user?.last_name || "User";
 
   const handleLogout = async () => {
     try {
@@ -46,7 +47,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               onClick={() => setDropdownOpen((prev) => !prev)}
               className="text-gray-700 font-medium flex items-center gap-2 hover:text-black focus:outline-none"
             >
-              👤 {user?.name || "User"}
+              👤 {userame || "User"}
               <svg
                 className={`w-4 h-4 transition-transform duration-200 ${
                   dropdownOpen ? "rotate-180" : ""
