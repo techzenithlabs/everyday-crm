@@ -81,7 +81,8 @@ class AuthController extends Controller
             'token' => $token,
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
                 'email' => $user->email,
                 'role_id' => $user->role_id,
             ],
@@ -89,9 +90,9 @@ class AuthController extends Controller
     }
 
 
-    public function logout(Request $request)
-    {
-        $request->user()->currentAccessToken()->delete();
+        public function logout(Request $request)
+        {
+            $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logged out successfully']);
     }
