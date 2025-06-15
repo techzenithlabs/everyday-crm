@@ -13,3 +13,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/profile/update', [ProfileController::class, 'update']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
+
+//Google and Slack OAuth routes
+Route::get('auth/{provider}', [AuthController::class, 'redirectToProvider']);
+Route::get('auth/{provider}/callback', [AuthController::class, 'handleProviderCallback']);
+
+

@@ -8,6 +8,7 @@ import { login } from "../../redux/slices/authSlice";
 import { AxiosError } from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
+import { startLoading, stopLoading } from "../../redux/slices/loadingSlice";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -39,6 +40,7 @@ const Login = () => {
       return;
     }
 
+    dispatch(startLoading());
     try {
       const data = await loginUser(form.email, form.password);
       dispatch(login({ token: data.token, user: data.user }));
@@ -46,19 +48,22 @@ const Login = () => {
       navigate("/dashboard");
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
-      if (err && !err.status && typeof err.message === 'string') {
+      if (err && !err.status && typeof err.message === "string") {
         toast.error(err.message);
       }
+    } finally {
+      dispatch(stopLoading());
     }
+  };
+
+  const handleSocialLogin = (provider: "google" | "slack" | "microsoft" | "apple") => {
+    const backendBaseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+    window.location.href = `${backendBaseURL}/auth/${provider}`;
   };
 
   useEffect(() => {
     buttonControls
-      .start({
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.4, delay: 1.3 },
-      })
+      .start({ opacity: 1, y: 0, transition: { duration: 0.4, delay: 1.3 } })
       .then(() => {
         buttonControls.start({
           x: [0, -5, 5, -3, 3, 0],
@@ -70,7 +75,6 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-        
         {/* Logo & Heading */}
         <motion.div
           initial={{ opacity: 0, y: -30 }}
@@ -84,7 +88,6 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-
           <motion.input
             ref={emailRef}
             type="email"
@@ -155,19 +158,19 @@ const Login = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
         >
-          <button className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+          <button onClick={() => handleSocialLogin("google")} className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
             <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google" />
             Google
           </button>
-          <button className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+          <button onClick={() => handleSocialLogin("microsoft")} className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
             <img src="https://img.icons8.com/color/16/000000/microsoft.png" alt="Microsoft" />
             Microsoft
           </button>
-          <button className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+          <button onClick={() => handleSocialLogin("apple")} className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
             <img src="https://img.icons8.com/ios-filled/16/000000/mac-os.png" alt="Apple" />
             Apple
           </button>
-          <button className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+          <button onClick={() => handleSocialLogin("slack")} className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
             <img src="https://img.icons8.com/color/16/000000/slack-new.png" alt="Slack" />
             Slack
           </button>
@@ -175,10 +178,11 @@ const Login = () => {
 
         {/* Footer Links */}
         <div className="text-sm mt-6 text-center text-gray-600">
-          <Link to="/forgotpassword" className="text-blue-600 hover:underline mr-2">Can’t log in?</Link> ·
-          {/* <Link to="/register" className="text-blue-600 hover:underline ml-2">Create an account</Link> */}
+          <Link to="/forgotpassword" className="text-blue-600 hover:underline mr-2">
+            Can’t log in?
+          </Link>{" "}
+          ·
         </div>
-
         <div className="text-xs text-center text-gray-400 mt-6">
           <p>© 2025 Everyday CRM</p>
         </div>

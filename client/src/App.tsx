@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import PrivateRoute from "./routes/PrivateRoute";
 import PublicRoute from "./routes/PublicRoute";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import SocialSuccess from "./pages/auth/SocialSuccess";
 
 function App() {
   return (
@@ -40,6 +41,9 @@ function App() {
             </PublicRoute>
           }
         />
+
+        {/* ✅ Social login success route (public) */}
+        <Route path="/social-success" element={<SocialSuccess />} />
 
         {/* Protected Routes */}
         <Route
