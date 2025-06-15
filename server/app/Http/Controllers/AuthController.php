@@ -257,4 +257,38 @@ class AuthController extends Controller
 
         return response()->json(['valid' => true, 'email' => $email]);
     }
+    /***Admin Send invite */
+    public function inviteUser(Request $request)
+    {
+        $request->validate([
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:15',
+            'role_id' => 'required|in:2,3',
+        ]);
+
+        $token = Str::uuid();
+        $data = $request->only('first_name', 'last_name', 'email', 'phone', 'role_id');
+
+        // Cache data for 48 hours
+        Cache::put("register_token_$token", $data, now()->addHours(48));
+
+        // Generate registration URL
+        $registerUrl = config('app.frontend_url') . "/register?token=$token";
+
+        // Send email
+        EmailHelper::send(
+            $data['email'],
+            'You’ve been invited to Everyday CRM',
+            'emails.invite-user',
+            [
+                'first_name' => $data['first_name'],
+                'register_url' => $registerUrl,
+                'expires' => '48 hours',
+            ]
+        );
+
+        return response()->json(['status' => true, 'message' => 'Invite sent successfully.']);
+    }
 }
