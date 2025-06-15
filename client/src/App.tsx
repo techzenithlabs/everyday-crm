@@ -9,6 +9,7 @@ import PrivateRoute from "./routes/PrivateRoute";
 import PublicRoute from "./routes/PublicRoute";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import SocialSuccess from "./pages/auth/SocialSuccess";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 function App() {
   return (
@@ -34,9 +35,19 @@ function App() {
           }
         />
         <Route
-          path="/forgotpassword"
+          path="/reset-password"
           element={
             <PublicRoute>
+                  <ResetPassword/>
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>      
+            
               <ForgotPassword />
             </PublicRoute>
           }

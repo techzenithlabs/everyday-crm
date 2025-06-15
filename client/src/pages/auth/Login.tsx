@@ -178,7 +178,7 @@ const Login = () => {
 
         {/* Footer Links */}
         <div className="text-sm mt-6 text-center text-gray-600">
-          <Link to="/forgotpassword" className="text-blue-600 hover:underline mr-2">
+          <Link to="/reset-password" className="text-blue-600 hover:underline mr-2">
             Can’t log in?
           </Link>{" "}
           ·

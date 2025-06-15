@@ -1,7 +1,6 @@
 import api from "../api";
 import { AxiosError } from "axios";
 
-
 interface RegisterPayload {
   name: string;
   email: string;
@@ -16,7 +15,6 @@ interface UpdateProfilePayload {
   password?: string;
   password_confirmation?: string;
 }
-
 
 export const registerUser = async (form: RegisterPayload) => {
   try {
@@ -61,15 +59,12 @@ export const updateProfile = async (token: string, data: any) => {
   return response.data;
 };
 
-
-
-
 export const loginUser = async (email: string, password: string) => {
   try {
     const response = await api.post("/login", { email, password });
     return response.data;
   } catch (error) {
-    const err = error as AxiosError<{ message: string }>;    
+    const err = error as AxiosError<{ message: string }>;
     throw err.response?.data || { message: "Login failed" };
   }
 };
@@ -92,10 +87,23 @@ export const forgotPassword = async (email: string) => {
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
-    throw err.response?.data || { message: "Failed to send reset password link." };
+    throw (
+      err.response?.data || { message: "Failed to send reset password link." }
+    );
   }
 };
 
-
-
-
+export const resetPassword = async (payload: {
+  token: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}) => {
+  try {
+    const response = await api.post("/reset-password", payload);
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw err.response?.data || { message: "Reset password failed" };
+  }
+};

@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'frontend_url' => env('REACT_APP_API_URL', 'http://localhost:5173'),
+
+
 ];
