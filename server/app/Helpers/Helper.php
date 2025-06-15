@@ -10,8 +10,8 @@ class Helper
         $username = str_replace(['_', '-'], '.', $username);
         $parts = explode('.', $username);
 
-        $firstName = ucfirst(preg_replace('/[^a-zA-Z]/', '', $parts[0] ?? 'User'));
-        $lastName  = ucfirst(preg_replace('/[^a-zA-Z0-9]/', '', $parts[1] ?? 'User'));
+        $firstName = ucfirst(preg_replace('/[^a-zA-Z]/', ' ', $parts[0] ?? 'User'));
+        $lastName  = ucfirst(preg_replace('/[^a-zA-Z0-9]/', ' ', $parts[1] ?? 'User'));
 
         return [
             'first_name' => $firstName,
