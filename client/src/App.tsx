@@ -81,7 +81,7 @@ function App() {
           path="/dashboard"
           element={
             <PrivateRoute>
-              <AppShell>
+              <AppShell title="Home">
                 <Dashboard />
               </AppShell>
             </PrivateRoute>
@@ -91,7 +91,7 @@ function App() {
           path="/profile"
           element={
             <PrivateRoute>
-              <AppShell>
+              <AppShell title="Profile Management">
                 <Profile />
               </AppShell>
             </PrivateRoute>
@@ -103,7 +103,7 @@ function App() {
           path="/admin/users"
           element={
             <PrivateRoute>
-              <AppShell>
+              <AppShell title="User Management">
                 <UserList />
               </AppShell>
             </PrivateRoute>
@@ -113,7 +113,7 @@ function App() {
           path="/admin/users/invite"
           element={
             <PrivateRoute>
-              <AppShell>
+              <AppShell title="Invite User">
                 <InviteUser />
               </AppShell>
             </PrivateRoute>

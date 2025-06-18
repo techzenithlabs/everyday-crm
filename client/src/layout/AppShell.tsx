@@ -9,13 +9,21 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 
-export default function AppShell({ children }: { children: ReactNode }) {
+interface AppShellProps {
+  children: ReactNode;
+  title?: string;
+}
+
+export default function AppShell({
+  children,
+  title = "Dashboard",
+}: AppShellProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const token = useSelector((state: RootState) => state.auth.token);
   const user = useSelector((state: RootState) => state.auth.user); // optional
-  const userame = user?.first_name +' '+user?.last_name || "User";
+  const userame = user?.first_name + " " + user?.last_name || "User";
 
   const handleLogout = async () => {
     try {
@@ -40,7 +48,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <div className="flex-1 bg-gray-50 min-h-screen p-8">
         {/* Top Header */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Home</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 tracking-tight border-b pb-2 mb-4">
+            {title}
+          </h1>
 
           <div className="relative">
             <button
