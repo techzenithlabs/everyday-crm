@@ -81,7 +81,7 @@ function App() {
           path="/dashboard"
           element={
             <PrivateRoute>
-              <AppShell title="Home">
+              <AppShell title="Dashboard">
                 <Dashboard />
               </AppShell>
             </PrivateRoute>

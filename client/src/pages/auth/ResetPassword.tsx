@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import logo from "../../assets/every-day-crm-png.png";
@@ -61,7 +62,18 @@ const ResetPassword = () => {
             Send Recovery Link
           </motion.button>
         </form>
+        {/* Footer Links */}
+              <div className="text-sm mt-6 text-center text-gray-600">
+                <Link to="/login" className="text-blue-600 hover:underline mr-2">
+                  Back to login
+                </Link>{" "}
+                ·
+              </div>
+              <div className="text-xs text-center text-gray-400 mt-6">
+                <p>© 2025 Everyday CRM</p>
+              </div> 
       </div>
+                   
     </div>
   );
 };
