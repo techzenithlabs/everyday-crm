@@ -1,6 +1,6 @@
 
-import DashboardCards from "../components/DashboardCards";
-import KanbanBoard from "../components/KanbanBoard";
+import DashboardCards from "../../components/DashboardCards";
+import KanbanBoard from "../../components/KanbanBoard";
 
 
 const Dashboard = () => { 

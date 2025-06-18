@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use Illuminate\Mail\Mailables\Headers;
 use Laravel\Socialite\Facades\Socialite;
@@ -13,35 +14,77 @@ use Illuminate\Support\Str;
 use App\Helpers\EmailHelper;
 use App\Notifications\ForgotPasswordNotification;
 use Illuminate\Support\Facades\Cache;
+use App\Models\UserInvitation;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-            'role_id' => 'required|in:1,2,3',
+        $request->validate([
+            'token' => 'required|uuid',
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'email' => 'required|email',
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+        $invitation = UserInvitation::where('token', $request->token)
+            ->where('used', false)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$invitation) {
+            return response()->json(['message' => 'Token is invalid or expired'], 400);
         }
 
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json(['message' => 'User already exists with this email.'], 409);
+        }
+
+
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role_id' => $request->role_id,
-            'status' => 1,
+            'first_name' => $request->first_name,
+            'last_name'  => $request->last_name,
+            'email'      => $request->email,
+            'role_id'    => $invitation->role_id,
+            'password'   => Hash::make($request->password),
+            'status'     => 0,
+            'email_verified_at' => null,
         ]);
 
-        return response()->json(['message' => 'User registered successfully'], 201);
+
+        $invitation->update(['used' => true]);
+
+        // ✅ Step 3: Create email verification token
+        $verifyToken = Str::uuid();
+        DB::table('email_verification_tokens')->insert([
+            'user_id'    => $user->id,
+            'token'      => $verifyToken,
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        // ✅ Step 4: Send verification email
+        $verifyUrl = config('app.frontend_url', env('REACT_APP_URL')) . "verify-email?token={$verifyToken}";
+
+        EmailHelper::send(
+            $user->email,
+            'Verify your email – Everyday CRM',
+            'emails.verify-email', // Create this Blade template
+            [
+                'name' => $user->first_name,
+                'url' => $verifyUrl,
+            ]
+        );
+
+        // ✅ Step 5: Respond with frontend redirect URL
+        return response()->json([
+            'message' => 'User registered. Please verify your email.',
+            'redirect' => '/check-email' // used in frontend to navigate
+        ]);
     }
+
+
+
 
     public function login(Request $request)
     {
@@ -249,14 +292,19 @@ class AuthController extends Controller
 
     public function verifyRegisterToken($token)
     {
-        $email = Cache::get('register_token_' . $token);
+        $invitation = UserInvitation::where('token', $token)
+            ->where('used', false)
+            ->where('expires_at', '>', now())
+            ->first();
 
-        if (!$email) {
+        if (!$invitation) {
             return response()->json(['valid' => false, 'message' => 'Token expired or invalid.'], 404);
         }
 
-        return response()->json(['valid' => true, 'email' => $email]);
+        return response()->json(['valid' => true, 'data' => $invitation]);
     }
+
+
     /***Admin Send invite */
     public function inviteUser(Request $request)
     {
@@ -290,5 +338,31 @@ class AuthController extends Controller
         );
 
         return response()->json(['status' => true, 'message' => 'Invite sent successfully.']);
+    }
+
+    public function verifyEmail($token)
+    {
+        $record = DB::table('email_verification_tokens')
+            ->where('token', $token)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$record) {
+            return response()->json(['message' => 'Token invalid or expired'], 400);
+        }
+
+        $user = User::find($record->user_id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->update([
+            'status' => 1,
+            'email_verified_at' => now()
+        ]);
+
+       // DB::table('email_verification_tokens')->where('token', $token)->delete();
+
+        return response()->json(['message' => 'Email verified successfully']);
     }
 }

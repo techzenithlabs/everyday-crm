@@ -4,13 +4,15 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Profile from "./pages/profile";
 import AppShell from "./layout/AppShell";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/admin/Dashboard";
 import PrivateRoute from "./routes/PrivateRoute";
 import PublicRoute from "./routes/PublicRoute";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import SocialSuccess from "./pages/auth/SocialSuccess";
 import ResetPassword from "./pages/auth/ResetPassword";
-
+import UserManagement from "./pages/admin/UserManagement";
+import CheckEmail from "./pages/auth/CheckEmail";
+import VerifyEmail from "./pages/auth/VerifyEmail";
 function App() {
   return (
     <BrowserRouter>
@@ -38,7 +40,7 @@ function App() {
           path="/reset-password"
           element={
             <PublicRoute>
-                  <ResetPassword/>
+              <ResetPassword />
             </PublicRoute>
           }
         />
@@ -46,9 +48,26 @@ function App() {
         <Route
           path="/forgot-password"
           element={
-            <PublicRoute>      
-            
+            <PublicRoute>
               <ForgotPassword />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/check-email"
+          element={
+            <PublicRoute>
+              <CheckEmail />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/verify-email"
+          element={
+            <PublicRoute>
+              <VerifyEmail />
             </PublicRoute>
           }
         />
@@ -73,6 +92,18 @@ function App() {
             <PrivateRoute>
               <AppShell>
                 <Profile />
+              </AppShell>
+            </PrivateRoute>
+          }
+        />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin/users"
+          element={
+            <PrivateRoute>
+              <AppShell>
+                <UserManagement />
               </AppShell>
             </PrivateRoute>
           }
