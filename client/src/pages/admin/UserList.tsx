@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { getInvitedUsers } from "../../services/adminService";
+import { formatHumanDate } from './../../utils/dateHelpers';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -39,8 +40,7 @@ const UserList = () => {
               <th className="px-4 py-2">Full Name</th>
               <th className="px-4 py-2">Email</th>
               <th className="px-4 py-2">Role</th>
-              <th className="px-4 py-2">Sent At</th>
-              <th className="px-4 py-2">Expires</th>
+              <th className="px-4 py-2">Sent At</th>           
               <th className="px-4 py-2">Status</th>
             </tr>
           </thead>
@@ -55,8 +55,7 @@ const UserList = () => {
                 <td className="px-4 py-2">{user.first_name} {user.last_name}</td>
                 <td className="px-4 py-2">{user.email}</td>
                 <td className="px-4 py-2">{user.role?.name || "—"}</td>
-                <td className="px-4 py-2">{new Date(user.created_at).toLocaleString()}</td>
-                <td className="px-4 py-2">{new Date(user.expires_at).toLocaleDateString()}</td>
+                <td className="px-4 py-2">{formatHumanDate(user.created_at)}</td>        
                 <td className="px-4 py-2 font-medium">{getStatus(user)}</td>
               </tr>
             ))}
