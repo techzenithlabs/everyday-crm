@@ -24,6 +24,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/roles', [RoleController::class, 'index']);
     Route::post('/admin/invite-user', [AdminController::class, 'inviteUser']);
+    Route::get('/admin/users', [AdminController::class, 'listInvitedUsers']);
 });
 
 

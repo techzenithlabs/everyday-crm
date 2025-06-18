@@ -10,10 +10,21 @@ import axios from "axios";
   });
 
  api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const persistRoot = localStorage.getItem("persist:root");
+
+  if (persistRoot) {
+    try {
+      const parsedRoot = JSON.parse(persistRoot);
+      const auth = parsedRoot.auth ? JSON.parse(parsedRoot.auth) : null;
+
+      if (auth?.token) {     
+        config.headers.Authorization = `Bearer ${auth.token}`;
+      }
+    } catch (e) {
+      console.warn("Failed to parse auth token from persist:root");
+    }
   }
+
   return config;
 });
 export default api;

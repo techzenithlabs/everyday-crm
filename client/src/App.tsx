@@ -10,9 +10,10 @@ import PublicRoute from "./routes/PublicRoute";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import SocialSuccess from "./pages/auth/SocialSuccess";
 import ResetPassword from "./pages/auth/ResetPassword";
-import UserManagement from "./pages/admin/UserManagement";
+import InviteUser from "./pages/admin/InviteUser";
 import CheckEmail from "./pages/auth/CheckEmail";
 import VerifyEmail from "./pages/auth/VerifyEmail";
+import UserList from "./pages/admin/UserList";
 function App() {
   return (
     <BrowserRouter>
@@ -103,7 +104,17 @@ function App() {
           element={
             <PrivateRoute>
               <AppShell>
-                <UserManagement />
+                <UserList />
+              </AppShell>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/users/invite"
+          element={
+            <PrivateRoute>
+              <AppShell>
+                <InviteUser />
               </AppShell>
             </PrivateRoute>
           }

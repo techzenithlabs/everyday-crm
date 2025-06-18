@@ -2,7 +2,7 @@ import api from "../api";
 
 export const getRoles = async () => {
   const res = await api.get("/admin/roles");
-  return res.data;
+  return res.data?.roles; // Or res.data.roles if wrapped
 };
 
 export const sendUserInvite = async (data: {
@@ -13,4 +13,9 @@ export const sendUserInvite = async (data: {
 }) => {
   const res = await api.post("/admin/invite-user", data);
   return res.data;
+};
+
+export const getInvitedUsers = async () => {
+  const res = await api.get("/admin/users");
+  return res.data.users; // Assuming API returns { users: [...] }
 };

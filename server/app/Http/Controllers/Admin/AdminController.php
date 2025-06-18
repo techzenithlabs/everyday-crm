@@ -58,4 +58,13 @@ class AdminController extends Controller
 
         return response()->json(['status' => true, 'message' => 'Invitation sent successfully.']);
     }
+
+    public function listInvitedUsers()
+    {
+        $users = UserInvitation::with('role')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json(['users' => $users]);
+    }
 }
