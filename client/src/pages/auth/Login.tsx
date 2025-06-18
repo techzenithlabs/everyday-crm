@@ -162,18 +162,18 @@ const Login = () => {
             <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google" />
             Google
           </button>
-          <button onClick={() => handleSocialLogin("microsoft")} className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+          {/* <button onClick={() => handleSocialLogin("microsoft")} className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
             <img src="https://img.icons8.com/color/16/000000/microsoft.png" alt="Microsoft" />
             Microsoft
-          </button>
-          <button onClick={() => handleSocialLogin("apple")} className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+          </button> */}
+          <button  className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
             <img src="https://img.icons8.com/ios-filled/16/000000/mac-os.png" alt="Apple" />
             Apple
           </button>
-          <button onClick={() => handleSocialLogin("slack")} className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
+          {/* <button onClick={() => handleSocialLogin("slack")} className="w-full flex items-center justify-center gap-2 border py-2 rounded-md hover:bg-gray-50">
             <img src="https://img.icons8.com/color/16/000000/slack-new.png" alt="Slack" />
             Slack
-          </button>
+          </button> */}
         </motion.div>
 
         {/* Footer Links */}
