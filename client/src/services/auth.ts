@@ -8,13 +8,6 @@ interface RegisterPayload {
   role_id?: number; // optional if you're assigning on backend
 }
 
-interface UpdateProfilePayload {
-  first_name: string;
-  last_name: string;
-  email: string;
-  password?: string;
-  password_confirmation?: string;
-}
 
 export const registerUser = async (form: RegisterPayload) => {
   try {
@@ -41,14 +34,6 @@ export const getProfile = async (token: string) => {
   }
 };
 
-// Update user profile
-interface UpdateProfilePayload {
-  first_name: string;
-  last_name: string;
-  email: string;
-  password?: string;
-  password_confirmation?: string;
-}
 
 export const updateProfile = async (token: string, data: any) => {
   const response = await api.put("/profile/update", data, {

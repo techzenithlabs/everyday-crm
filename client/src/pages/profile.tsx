@@ -71,7 +71,7 @@ const Profile = () => {
       if (err.response?.data?.errors) {
         Object.values(err.response.data.errors)
           .flat()
-          .forEach((msg: string) => toast.error(msg));
+          .forEach((msg) => toast.error(String(msg)));
       } else {
         toast.error(err.response?.data?.message || "Something went wrong.");
       }

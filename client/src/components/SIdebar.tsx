@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Home,
   CalendarDays,
@@ -11,7 +10,7 @@ import {
 import { NavLink,useLocation } from "react-router-dom";
 
 const Sidebar = () => {
-  const [active, setActive] = useState("Dashboard");
+  {/*const [active, setActive] = useState("Dashboard");*/}
    const location = useLocation();
   const menuItems = [
     { name: "Home", icon: <Home className="h-5 w-5" />, path: "/dashboard" },

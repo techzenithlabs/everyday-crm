@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Mail\Mailables\Headers;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
+use App\Helpers\Helper;
 use App\Helpers\EmailHelper;
 use App\Notifications\ForgotPasswordNotification;
 use Illuminate\Support\Facades\Cache;
@@ -53,7 +54,8 @@ class AuthController extends Controller
         ]);
 
 
-        $invitation->update(['used' => true]);
+        $invitation->update(['used' => true, 'registered_at' => now()]);
+
 
         // ✅ Step 3: Create email verification token
         $verifyToken = Str::uuid();
