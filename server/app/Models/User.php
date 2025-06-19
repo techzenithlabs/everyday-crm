@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Role;
+use App\Models\Permission;
 
 class User extends Authenticatable
 {
@@ -54,5 +56,18 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function permissions()
+    {
+        // This connects: User -> Role -> Permissions
+        return $this->hasManyThrough(
+            Permission::class,  // final model
+            Role::class,        // intermediate model
+            'id',               // Role table's local key
+            'role_id',          // Permission table's foreign key
+            'role_id',          // User table's foreign key to Role
+            'id'                // Role table's local key to join with Permission
+        );
     }
 }
