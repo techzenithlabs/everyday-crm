@@ -1,10 +1,9 @@
 <?php
-
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\HandleCors;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
-use App\Http\Middleware\CorsMiddleware;
 use App\Http\Middleware\IsAdmin;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -15,9 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->append(CorsMiddleware::class);
+        $middleware->append(HandleCors::class);
         $middleware->append(EnsureFrontendRequestsAreStateful::class);
-
         $middleware->alias([
             'admin' => IsAdmin::class,
         ]);

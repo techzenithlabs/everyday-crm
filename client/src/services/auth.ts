@@ -8,9 +8,10 @@ interface RegisterPayload {
   role_id?: number; // optional if you're assigning on backend
 }
 
-
+// === REGISTER ===
 export const registerUser = async (form: RegisterPayload) => {
   try {
+    await api.get("/sanctum/csrf-cookie"); // CSRF cookie
     const response = await api.post("/register", form);
     return response.data;
   } catch (error) {
@@ -19,7 +20,33 @@ export const registerUser = async (form: RegisterPayload) => {
   }
 };
 
-// Fetch user profile
+// === LOGIN ===
+export const loginUser = async (email: string, password: string) => {
+  try {
+    await api.get("/sanctum/csrf-cookie"); // CSRF cookie
+    const response = await api.post("/login", { email, password });
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw err.response?.data || { message: "Login failed" };
+  }
+};
+
+// === LOGOUT ===
+export const logoutUser = async (token: string) => {
+  await api.get("/sanctum/csrf-cookie"); // Optional but safe
+  return await api.post(
+    "/logout",
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};
+
+// === GET PROFILE ===
 export const getProfile = async (token: string) => {
   try {
     const response = await api.get("/profile", {
@@ -34,7 +61,7 @@ export const getProfile = async (token: string) => {
   }
 };
 
-
+// === UPDATE PROFILE ===
 export const updateProfile = async (token: string, data: any) => {
   const response = await api.put("/profile/update", data, {
     headers: {
@@ -44,40 +71,21 @@ export const updateProfile = async (token: string, data: any) => {
   return response.data;
 };
 
-export const loginUser = async (email: string, password: string) => {
-  try {
-    const response = await api.post("/login", { email, password });
-    return response.data;
-  } catch (error) {
-    const err = error as AxiosError<{ message: string }>;
-    throw err.response?.data || { message: "Login failed" };
-  }
-};
-
-export const logoutUser = async (token: string) => {
-  return await api.post(
-    "/logout",
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-};
-
+// === FORGOT PASSWORD ===
 export const forgotPassword = async (email: string) => {
   try {
+    await api.get("/sanctum/csrf-cookie"); // Safe before POST
     const response = await api.post("/forgot-password", { email });
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
-    throw (
-      err.response?.data || { message: "Failed to send reset password link." }
-    );
+    throw err.response?.data || {
+      message: "Failed to send reset password link.",
+    };
   }
 };
 
+// === RESET PASSWORD ===
 export const resetPassword = async (payload: {
   token: string;
   email: string;
@@ -85,6 +93,7 @@ export const resetPassword = async (payload: {
   password_confirmation: string;
 }) => {
   try {
+    await api.get("/sanctum/csrf-cookie"); // Safe before POST
     const response = await api.post("/reset-password", payload);
     return response.data;
   } catch (error) {

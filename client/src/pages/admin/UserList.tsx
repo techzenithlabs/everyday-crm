@@ -2,18 +2,21 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { getInvitedUsers } from "../../services/adminService";
-import { formatHumanDate } from './../../utils/dateHelpers';
+import { formatHumanDate } from "./../../utils/dateHelpers";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
 
- useEffect(() => {
-  getInvitedUsers()
-    .then(setUsers)
-    .catch((err) => {
-      console.error("Error fetching invited users:", err);
-    });
-}, []);
+  useEffect(() => {
+    getInvitedUsers()
+      .then((res) => {
+        console.log(res)
+        setUsers(res);
+      })
+      .catch((err) => {
+        console.error("Error fetching invited users:", err);
+      });
+  }, []);
 
   const getStatus = (user: any) => {
     if (user.used) return "Registered";
@@ -40,25 +43,33 @@ const UserList = () => {
               <th className="px-4 py-2">Full Name</th>
               <th className="px-4 py-2">Email</th>
               <th className="px-4 py-2">Role</th>
-              <th className="px-4 py-2">Sent At</th>           
+              <th className="px-4 py-2">Sent At</th>
               <th className="px-4 py-2">Status</th>
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 && (
+            {Array.isArray(users) && users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-6">No invites sent yet.</td>
+                <td colSpan={6} className="text-center py-6">
+                  No invites sent yet.
+                </td>
               </tr>
+            ) : (
+              Array.isArray(users) &&
+              users.map((user: any) => (
+                <tr key={user.id} className="border-t">
+                  <td className="px-4 py-2">
+                    {user.first_name} {user.last_name}
+                  </td>
+                  <td className="px-4 py-2">{user.email}</td>
+                  <td className="px-4 py-2">{user.role?.name || "—"}</td>
+                  <td className="px-4 py-2">
+                    {formatHumanDate(user.created_at)}
+                  </td>
+                  <td className="px-4 py-2 font-medium">{getStatus(user)}</td>
+                </tr>
+              ))
             )}
-            {users.map((user: any) => (
-              <tr key={user.id} className="border-t">
-                <td className="px-4 py-2">{user.first_name} {user.last_name}</td>
-                <td className="px-4 py-2">{user.email}</td>
-                <td className="px-4 py-2">{user.role?.name || "—"}</td>
-                <td className="px-4 py-2">{formatHumanDate(user.created_at)}</td>        
-                <td className="px-4 py-2 font-medium">{getStatus(user)}</td>
-              </tr>
-            ))}
           </tbody>
         </table>
       </div>
