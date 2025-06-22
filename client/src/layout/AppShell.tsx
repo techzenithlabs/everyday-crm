@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/Sidebar"; 
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../redux/store";
 import { logout } from "../redux/slices/authSlice";
@@ -36,6 +36,7 @@ export default function AppShell({
     } catch (error) {
       const err = error as AxiosError<{ message: string }>;
       toast.error(err.message || "Logout failed!");
+      console.log("check")
     }
   };
 
