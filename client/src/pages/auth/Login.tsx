@@ -48,8 +48,10 @@ const Login = () => {
       navigate("/dashboard");
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
-      if (err && !err.status && typeof err.message === "string") {
-        toast.error(err.message);
+     if (err.response && typeof err.response.data?.message === "string") {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Something went wrong.");
       }
     } finally {
       dispatch(stopLoading());
