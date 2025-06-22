@@ -11,7 +11,6 @@ interface RegisterPayload {
 // === REGISTER ===
 export const registerUser = async (form: RegisterPayload) => {
   try {
-    await api.get("/sanctum/csrf-cookie"); // CSRF cookie
     const response = await api.post("/register", form);
     return response.data;
   } catch (error) {
@@ -23,7 +22,6 @@ export const registerUser = async (form: RegisterPayload) => {
 // === LOGIN ===
 export const loginUser = async (email: string, password: string) => {
   try {
-    await api.get("/sanctum/csrf-cookie"); // CSRF cookie
     const response = await api.post("/login", { email, password });
     return response.data;
   } catch (error) {
@@ -34,7 +32,6 @@ export const loginUser = async (email: string, password: string) => {
 
 // === LOGOUT ===
 export const logoutUser = async (token: string) => {
-  await api.get("/sanctum/csrf-cookie"); // Optional but safe
   return await api.post(
     "/logout",
     {},
@@ -73,8 +70,7 @@ export const updateProfile = async (token: string, data: any) => {
 
 // === FORGOT PASSWORD ===
 export const forgotPassword = async (email: string) => {
-  try {
-    await api.get("/sanctum/csrf-cookie"); // Safe before POST
+  try {  
     const response = await api.post("/forgot-password", { email });
     return response.data;
   } catch (error) {
@@ -93,7 +89,6 @@ export const resetPassword = async (payload: {
   password_confirmation: string;
 }) => {
   try {
-    await api.get("/sanctum/csrf-cookie"); // Safe before POST
     const response = await api.post("/reset-password", payload);
     return response.data;
   } catch (error) {
