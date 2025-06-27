@@ -14,7 +14,7 @@ const Sidebar = () => {
    const location = useLocation();
   const menuItems = [
     { name: "Home", icon: <Home className="h-5 w-5" />, path: "/dashboard" },
-     {name: "Users", icon: <Users2 className="h-5 w-5" />, path: "/admin/users" },
+     {name: "Teams", icon: <Users2 className="h-5 w-5" />, path: "/admin/users" },
     { name: "Calendar", icon: <CalendarDays className="h-5 w-5" />, path: "/calendar" },
     { name: "Clients", icon: <Users2 className="h-5 w-5" />, path: "/clients" },
     { name: "Leads", icon: <Zap className="h-5 w-5" />, path: "/leads" },

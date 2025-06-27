@@ -15,7 +15,31 @@ export const sendUserInvite = async (data: {
   return res.data;
 };
 
-export const getInvitedUsers = async () => {
-  const res = await api.get("/admin/users");
-  return res.data.users; // Assuming API returns { users: [...] }
+export const getInvitedUsers = async ({
+  page = 1,
+  perPage = 10,
+  search = "",
+  sortBy = "created_at",
+  sortOrder = "desc",
+} = {}) => {
+  try {
+    const res = await api.get("/admin/users", {
+      params: {
+        page,
+        per_page: perPage,
+        search,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      },
+    });
+
+    if (!res.data.status) {
+      throw new Error(res.data.message || "Failed to fetch users");
+    }
+
+    return res.data.data;
+  } catch (error) {
+    console.error("Error fetching invited users:", error);
+    throw error;
+  }
 };

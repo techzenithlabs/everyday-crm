@@ -1,78 +1,263 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
 import { getInvitedUsers } from "../../services/adminService";
-import { formatHumanDate } from "./../../utils/dateHelpers";
+import { formatHumanDate } from "../../utils/dateHelpers";
+import ReactPaginate from "react-paginate";
+import EditUserModal from "../../components/modals/EditUserModal";
+import ManageAccessModal from "../../components/modals/ManageAccessModal";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState("created_at");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [loading, setLoading] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [accessModalOpen, setAccessModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [allPermissions, setAllPermissions] = useState([]);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await getInvitedUsers({
+        page,
+        perPage,
+        search,
+        sortBy,
+        sortOrder,
+      });
+      setUsers(data.data);
+      setTotalPages(data.last_page);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    getInvitedUsers()
-      .then((res) => {
-        console.log(res)
-        setUsers(res);
-      })
-      .catch((err) => {
-        console.error("Error fetching invited users:", err);
-      });
-  }, []);
+    fetchUsers();
+  }, [page, perPage, search, sortBy, sortOrder]);
 
-  const getStatus = (user: any) => {
-    if (user.used) return "Registered";
-    if (new Date(user.expires_at) < new Date()) return "Expired";
-    return "Pending";
+  const handleSort = (key: string) => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(key);
+      setSortOrder("asc");
+    }
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortBy !== key) return null;
+    return sortOrder === "asc" ? " ▲" : " ▼";
+  };
+
+  const getRegistrationStatus = (user: any) => {
+    if (user.used) {
+      return (
+        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+          Registered
+        </span>
+      );
+    } else if (new Date(user.expires_at) < new Date()) {
+      return (
+        <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+          Expired
+        </span>
+      );
+    } else {
+      return (
+        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
+          Pending
+        </span>
+      );
+    }
+  };
+
+  const getActiveStatus = (user: any) => {
+    return user.status === "inactive" ? (
+      <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+        Inactive
+      </span>
+    ) : (
+      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+        Active
+      </span>
+    );
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Invited Users</h2>
+    <div className="px-6 py-8">
+      <h2 className="text-2xl font-bold mb-4">Team Management</h2>
+
+      <div className="bg-white p-4 rounded-lg shadow mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <input
+          type="text"
+          placeholder="Search team members..."
+          className="border rounded px-4 py-2 w-full md:w-80 shadow-sm"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
         <Link
           to="/admin/users/invite"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700"
         >
-          + Invite User
+          Add New Member
         </Link>
       </div>
 
-      <div className="overflow-x-auto bg-white shadow rounded-lg">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-100 text-left">
+      <div className="bg-white p-4 rounded-lg shadow overflow-auto">
+        <table className="min-w-[1000px] w-full text-sm text-left">
+          <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2">Full Name</th>
-              <th className="px-4 py-2">Email</th>
-              <th className="px-4 py-2">Role</th>
-              <th className="px-4 py-2">Sent At</th>
-              <th className="px-4 py-2">Status</th>
+              {[
+                { label: "Last Name", key: "last_name" },
+                { label: "First Name", key: "first_name" },
+                { label: "Role", key: "role.name" },
+                { label: "Email", key: "email" },
+                { label: "Address", key: "address" },
+                { label: "Registration", key: "registration" },
+                { label: "Permissions", key: "permissions_count" },
+                { label: "Status", key: "status" },
+              ].map(({ label, key }) => (
+                <th
+                  key={key}
+                  onClick={() => handleSort(key)}
+                  className="px-4 py-3 font-medium text-gray-700 cursor-pointer select-none"
+                >
+                  {label}
+                  {getSortIcon(key)}
+                </th>
+              ))}
+              <th className="px-4 py-3 font-medium text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {Array.isArray(users) && users.length === 0 ? (
+            {loading ? (
               <tr>
-                <td colSpan={6} className="text-center py-6">
-                  No invites sent yet.
+                <td colSpan={9} className="text-center py-6">
+                  Loading...
+                </td>
+              </tr>
+            ) : users.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="text-center py-6">
+                  No users found
                 </td>
               </tr>
             ) : (
-              Array.isArray(users) &&
               users.map((user: any) => (
-                <tr key={user.id} className="border-t">
-                  <td className="px-4 py-2">
-                    {user.first_name} {user.last_name}
+                <tr key={user.id} className="border-t hover:bg-gray-50">
+                  <td className="px-4 py-3">{user.last_name}</td>
+                  <td className="px-4 py-3">{user.first_name}</td>
+                  <td className="px-4 py-3">{user.role?.name || "—"}</td>
+                  <td className="px-4 py-3">{user.email}</td>
+                  <td className="px-4 py-3">{user.address || "N/A"}</td>
+                  <td className="px-4 py-3">{getRegistrationStatus(user)}</td>
+                  <td className="px-4 py-3 font-semibold">
+                    {user.permissions_count || 0}
                   </td>
-                  <td className="px-4 py-2">{user.email}</td>
-                  <td className="px-4 py-2">{user.role?.name || "—"}</td>
-                  <td className="px-4 py-2">
-                    {formatHumanDate(user.created_at)}
+                  <td className="px-4 py-3">{getActiveStatus(user)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setEditModalOpen(true);
+                        }}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setAccessModalOpen(true);
+                        }}
+                        className="text-indigo-600 hover:underline"
+                      >
+                        Manage Access
+                      </button>
+                    </div>
                   </td>
-                  <td className="px-4 py-2 font-medium">{getStatus(user)}</td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+        <div>
+          <label className="mr-2 text-sm">Rows per page:</label>
+          <select
+            value={perPage}
+            onChange={(e) => {
+              setPerPage(Number(e.target.value));
+              setPage(1);
+            }}
+            className="border px-2 py-1 rounded text-sm"
+          >
+            {[10, 20, 30, 50, 100].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <ReactPaginate
+          previousLabel="←"
+          nextLabel="→"
+          breakLabel="..."
+          pageCount={totalPages}
+          forcePage={page - 1}
+          marginPagesDisplayed={1}
+          pageRangeDisplayed={2}
+          onPageChange={({ selected }) => setPage(selected + 1)}
+          containerClassName="flex items-center gap-1"
+          pageClassName="px-3 py-1 border rounded hover:bg-gray-100 text-sm"
+          previousClassName="px-3 py-1 border rounded hover:bg-gray-100 text-sm"
+          nextClassName="px-3 py-1 border rounded hover:bg-gray-100 text-sm"
+          breakClassName="px-3 py-1 text-gray-500"
+          activeClassName="bg-blue-600 text-white"
+          disabledClassName="opacity-50 cursor-not-allowed"
+        />
+      </div>
+
+      {editModalOpen && selectedUser && (
+        <EditUserModal
+          isOpen={true}
+          user={selectedUser}
+          onClose={() => setEditModalOpen(false)}
+          onSave={() => {
+            setEditModalOpen(false);
+            fetchUsers();
+          }}
+        />
+      )}
+
+      {accessModalOpen && selectedUser && (
+        <ManageAccessModal
+          isOpen={true}
+          user={selectedUser}
+          permissions={allPermissions}
+          userPermissions={selectedUser.permissions || []}
+          onClose={() => setAccessModalOpen(false)}
+          onSave={(updatedPerms) => {
+            setAccessModalOpen(false);
+            fetchUsers();
+          }}
+        />
+      )}
     </div>
   );
 };
