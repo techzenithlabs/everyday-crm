@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Permission\Models\Permission as SpatiePermission;
 
-class Permission extends Model
+class Permission extends SpatiePermission
 {
     use HasFactory;
 
     protected $fillable = [
-        'role_id',
+        'name',
+        'guard_name',
         'menu_id',
         'can_read',
         'can_write',
+        'can_update',
+        'can_delete',
     ];
 
     public function role()

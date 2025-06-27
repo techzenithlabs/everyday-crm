@@ -18,7 +18,8 @@ class AdminUserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@gmail.com'],
             [
-                'name' => 'Admin',
+                'first_name' => 'Admin',
+                'last_name' => 'Admin',
                 'email_verified_at' => Carbon::now(),
                 'password' => Hash::make('admin@123'),
                 'role_id' => 1,

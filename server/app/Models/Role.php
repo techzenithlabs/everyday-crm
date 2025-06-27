@@ -2,23 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\RoleGroup;
+use Spatie\Permission\Models\Role as SpatieRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Permission;
 
-class Role extends Model
+class Role extends SpatieRole
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'guard_name', 'role_group_id'];
 
-    public function users()
+    public function group()
     {
-        return $this->hasMany(User::class);
-    }
-
-    public function permissions()
-    {
-        return $this->hasMany(Permission::class);
+        return $this->belongsTo(RoleGroup::class, 'role_group_id');
     }
 }
