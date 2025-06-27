@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * App\Models\User
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permission> $permissions
+ * @property-read \App\Models\Role|null $role
+ */
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
