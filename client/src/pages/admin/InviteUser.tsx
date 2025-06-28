@@ -55,8 +55,8 @@ const InviteUser = () => {
       <div className="w-full max-w-4xl bg-white shadow-lg rounded-xl p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Invite New User</h2>
-          <Link to="/admin/users" className="text-sm text-blue-600 hover:underline">
-            ← Back to Users
+          <Link to="/admin/teams" className="text-sm text-blue-600 hover:underline">
+            ← Back to Team
           </Link>
         </div>
 
