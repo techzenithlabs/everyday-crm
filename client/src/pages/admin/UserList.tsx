@@ -5,6 +5,7 @@ import { formatHumanDate } from "../../utils/dateHelpers";
 import ReactPaginate from "react-paginate";
 import EditUserModal from "../../components/modals/EditUserModal";
 import ManageAccessModal from "../../components/modals/ManageAccessModal";
+import { getAllPermissions } from "../../services/adminService";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -39,8 +40,19 @@ const UserList = () => {
     }
   };
 
+  const fetchPermissions = async () => {
+  try {
+    const permissions = await getAllPermissions(); // ✅ This returns grouped modules with children
+    setAllPermissions(permissions); // Set into state
+  } catch (err) {
+    console.error("Failed to fetch permissions", err);
+  }
+};
+
+
   useEffect(() => {
     fetchUsers();
+    fetchPermissions();
   }, [page, perPage, search, sortBy, sortOrder]);
 
   const handleSort = (key: string) => {
@@ -163,7 +175,7 @@ const UserList = () => {
                   <td className="px-4 py-3">{user.address || "N/A"}</td>
                   <td className="px-4 py-3">{getRegistrationStatus(user)}</td>
                   <td className="px-4 py-3 font-semibold">
-                    {user.permissions_count || 0}
+                    {user.permission_count || 0}
                   </td>
                   <td className="px-4 py-3">{getActiveStatus(user)}</td>
                   <td className="px-4 py-3">
@@ -250,11 +262,15 @@ const UserList = () => {
           isOpen={true}
           user={selectedUser}
           permissions={allPermissions}
-          userPermissions={selectedUser.permissions || []}
+          userPermissions={
+            Array.isArray(selectedUser?.permissions)
+              ? selectedUser?.permissions
+              : JSON.parse(selectedUser?.permissions || "[]")
+          }
           onClose={() => setAccessModalOpen(false)}
           onSave={(updatedPerms) => {
             setAccessModalOpen(false);
-            fetchUsers();
+            fetchUsers(); // Refresh updated permission count
           }}
         />
       )}

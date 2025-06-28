@@ -11,14 +11,35 @@ class PermissionController extends Controller
 {
     public function allGroupedPermissions()
     {
-        $permissions = Permission::with('menu') // Assuming menu_id in permissions table
-            ->get()
-            ->groupBy('menu.name');
+        try {
+            $permissions = Menu::with('children:id,parent_id,name')
+                ->whereNull('parent_id')
+                ->select('id', 'name')
+                ->get()
+                ->map(function ($menu) {
+                    return [
+                        'id' => $menu->id,
+                        'name' => $menu->name,
+                        'children' => $menu->children->map(function ($child) {
+                            return [
+                                'id' => $child->id,
+                                'name' => $child->name,
+                            ];
+                        })->toArray(),
+                    ];
+                });
 
-        return response()->json([
-            'status' => true,
-            'permissions' => $permissions
-        ]);
+            return response()->json([
+                'status' => true,
+                'data' => $permissions,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error fetching permissions',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     // PermissionController.php
@@ -33,7 +54,7 @@ class PermissionController extends Controller
         ]);
     }
 
-     public function listModules()
+    public function listModules()
     {
         $modules = Menu::select('id', 'name', 'slug', 'icon')->get();
 

@@ -10,14 +10,23 @@ use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\InviteUserMail;
+use App\Helpers\EmailHelper;
 
 class UserController extends Controller
 {
     public function listInvitedUsers(Request $request)
     {
         try {
-            $query = UserInvitation::with('role');
+            $query = UserInvitation::with('role')
+                ->select('*')
+                ->selectRaw('(
+                    SELECT COUNT(*)
+                    FROM JSON_TABLE(user_invitations.permissions, "$[*]"
+                        COLUMNS (
+                            perm_id INT PATH "$"
+                        )
+                    ) AS jt
+                ) as permissions_count');
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
@@ -41,6 +50,7 @@ class UserController extends Controller
             $perPage = $request->input('per_page', 10);
             $users = $query->paginate($perPage);
 
+
             return response()->json([
                 'status' => true,
                 'message' => 'Invited users fetched successfully',
@@ -57,40 +67,58 @@ class UserController extends Controller
 
     public function inviteUser(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|unique:user_invitations,email',
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'role_id' => 'required|exists:roles,id',
-            'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id',
-        ]);
+        //header('Access-Control-Allow-Origin:*');
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email|unique:user_invitations,email',
+                'first_name' => 'required|string|max:100',
+                'last_name' => 'required|string|max:100',
+                'role_id' => 'required|exists:roles,id',
+                'permissions' => 'nullable|array',
+                'permissions.*' => 'integer|exists:menus,id', // Assuming permissions are linked to modules
+            ]);
 
-        if ($validator->fails()) {
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Step 1: Create invitation entry
+            $invitation = UserInvitation::create([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'email' => $request->email,
+                'role_id' => $request->role_id,
+                'token' => Str::random(30),
+                'expires_at' => now()->addDays(2),
+                'permissions' => $request->permissions // JSON column
+            ]);
+
+            // Step 2: Send email (optional)
+            EmailHelper::send(
+                $invitation->email,
+                'You’re invited to Everyday CRM!',
+                'emails.invite_user',
+                [
+                    'name' => $invitation->first_name,
+                    'register_url' => url('/register/' . $invitation->token),
+                ]
+            );
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Invitation sent successfully',
+                'data' => $invitation
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Error inviting user',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        // Step 1: Create invitation entry
-        $invitation = UserInvitation::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'role_id' => $request->role_id,
-            'token' => Str::random(40),
-            'expires_at' => now()->addDays(2),
-            'permissions' => json_encode($request->permissions ?? []), // JSON column
-        ]);
-
-        // Step 2: Send email (optional)
-        // Mail::to($invitation->email)->send(new InviteUserMail($invitation));
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Invitation sent successfully',
-            'data' => $invitation
-        ]);
     }
 }

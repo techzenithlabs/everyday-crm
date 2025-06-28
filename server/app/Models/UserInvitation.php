@@ -11,17 +11,18 @@ class UserInvitation extends Model
      *
      * @var list<string>
      */
+    protected $table = 'user_invitations';
+    protected $primaryKey = 'id';
+    public $timestamps = true; // ✅ Enable timestamps
     protected $fillable = [
         'token',
         'first_name',
         'last_name',
         'email',
         'role_id',
-        'permissions', // ✅ Add this
+        'permissions',
         'used',
         'expires_at',
-        'created_at',
-        'updated_at',
     ];
     protected $casts = [
         'permissions' => 'array',

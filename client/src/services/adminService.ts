@@ -56,3 +56,13 @@ export const getModules= async () => {
   return res.data.modules; // make sure `modules` key exists in backend
 };
 
+
+export const getAllPermissions = async () => {
+  const res = await api.get("/admin/permissions/grouped");
+  if (!res.data.status) {
+    throw new Error(res.data.message || "Failed to fetch permissions");
+  }
+  return res.data.data; // This should be an array of grouped permissions
+};
+
+

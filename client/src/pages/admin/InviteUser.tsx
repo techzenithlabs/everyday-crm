@@ -44,7 +44,7 @@ const InviteUser = () => {
         permissions: selectedModules,
       });
       toast.success("User invited successfully");
-      navigate("/admin/users");
+      navigate("/admin/teams");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Invite failed");
     }

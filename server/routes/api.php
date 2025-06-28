@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/role-permissions/{roleId}', [RoleController::class, 'getRolePermissions']);
     Route::get('/modules', [PermissionController::class, 'listModules']);
     Route::get('/modules-with-permissions', [PermissionController::class, 'getModulesWithPermissions']);
+    Route::get('/permissions/grouped', [PermissionController::class, 'allGroupedPermissions']);
 
     // You can add more admin-specific endpoints here in future
 });
