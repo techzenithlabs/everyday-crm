@@ -26,7 +26,7 @@ class UserController extends Controller
                             perm_id INT PATH "$"
                         )
                     ) AS jt
-                ) as permissions_count');
+                ) as permission_count');
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
@@ -49,7 +49,6 @@ class UserController extends Controller
 
             $perPage = $request->input('per_page', 10);
             $users = $query->paginate($perPage);
-
 
             return response()->json([
                 'status' => true,
