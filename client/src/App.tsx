@@ -81,7 +81,7 @@ function App() {
           path="/dashboard"
           element={
             <PrivateRoute>
-              <AppShell title="Dashboard">
+              <AppShell title=" Dashboard">
                 <Dashboard />
               </AppShell>
             </PrivateRoute>
@@ -100,7 +100,7 @@ function App() {
 
         {/* Admin Routes */}
         <Route
-          path="/admin/users"
+          path="/admin/teams"
           element={
             <PrivateRoute>
               <AppShell title="User Management">

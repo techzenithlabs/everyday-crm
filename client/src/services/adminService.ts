@@ -15,6 +15,7 @@ export const sendUserInvite = async (data: {
   return res.data;
 };
 
+//Get list of invited users
 export const getInvitedUsers = async ({
   page = 1,
   perPage = 10,
@@ -43,3 +44,15 @@ export const getInvitedUsers = async ({
     throw error;
   }
 };
+
+//Get list of all menus for Superadmin
+export const getUserMenus = async () => {
+  const res = await api.get("/menus");
+  return res.data?.menus || [];
+};
+
+export const getModules= async () => {
+  const res = await api.get("/admin/modules");
+  return res.data.modules; // make sure `modules` key exists in backend
+};
+

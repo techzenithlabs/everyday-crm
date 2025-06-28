@@ -1,10 +1,12 @@
 <?php
+
 /**
  * App\Models\User
  *
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permission> $permissions
  * @property-read \App\Models\Role|null $role
  */
+
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -14,11 +16,12 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Role;
 use App\Models\Permission;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -63,16 +66,8 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
-    public function permissions()
+    public function info()
     {
-        // This connects: User -> Role -> Permissions
-        return $this->hasManyThrough(
-            Permission::class,  // final model
-            Role::class,        // intermediate model
-            'id',               // Role table's local key
-            'role_id',          // Permission table's foreign key
-            'role_id',          // User table's foreign key to Role
-            'id'                // Role table's local key to join with Permission
-        );
+        return $this->hasOne(UserInfo::class);
     }
 }

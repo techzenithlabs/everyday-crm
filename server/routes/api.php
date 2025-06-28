@@ -7,6 +7,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\PermissionController;
 
 // --- Public Auth Routes ---
 Route::post('/register', [AuthController::class, 'register']);
@@ -35,13 +36,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 // --- Admin Routes ---
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/roles', [RoleController::class, 'index']);
+    Route::get('/roles', [RoleController::class, 'getRoles']);
 
     // ✅ Invite User (can move this later to InviteController if needed)
     Route::post('/invite-user', [UserController::class, 'inviteUser']);
 
     // ✅ List Invited Users
     Route::get('/users', [UserController::class, 'listInvitedUsers']);
+
+    Route::get('/role-permissions/{roleId}', [RoleController::class, 'getRolePermissions']);
+    Route::get('/modules', [PermissionController::class, 'listModules']);
+    Route::get('/modules-with-permissions', [PermissionController::class, 'getModulesWithPermissions']);
 
     // You can add more admin-specific endpoints here in future
 });

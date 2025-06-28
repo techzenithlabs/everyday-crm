@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use App\Models\RoleGroup;
 
@@ -30,6 +31,17 @@ class RoleController extends Controller
             'status' => true,
             'message' => 'Grouped roles fetched successfully',
             'groups' => $groups
+        ]);
+    }
+
+    public function getRolePermissions($roleId)
+    {
+        $role = Role::findById($roleId);
+        $permissionIds = $role->permissions->pluck('id');
+
+        return response()->json([
+            'status' => true,
+            'permission_ids' => $permissionIds
         ]);
     }
 }

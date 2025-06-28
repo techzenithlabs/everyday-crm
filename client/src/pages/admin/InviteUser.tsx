@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
-import api from "../../api";
-import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getRoles } from "../../services/adminService";
+import toast from "react-hot-toast";
+import api from "../../api";
+import { getRoles,getModules} from "../../services/adminService";
+import PermissionSelector from "../../components/permissions/PermissionSelector";
+import type { Module } from "../../types";
 
 const InviteUser = () => {
   const [form, setForm] = useState({
@@ -10,91 +12,93 @@ const InviteUser = () => {
     last_name: "",
     email: "",
     role_id: "",
+    // phone: "",
+    // address: "",
+    // city: "",
+    // state: "",
+    // pincode: "",
   });
+
   const [roles, setRoles] = useState([]);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [selectedModules, setSelectedModules] = useState<number[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    getRoles()
-      .then((data) => {
-        setRoles(data); // or data.roles based on your service
-      })
-      .catch(() => toast.error("Failed to load roles"));
+    getRoles().then((data) => setRoles(data));
+    getModules().then((data) => {
+      if (Array.isArray(data)) setModules(data);
+    });
   }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      await api.post(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/invite-user`,
-        form
-      );
-      toast.success("Invite sent successfully!");
+      await api.post(`${import.meta.env.VITE_API_BASE_URL}/admin/invite-user`, {
+        ...form,
+        permissions: selectedModules,
+      });
+      toast.success("User invited successfully");
       navigate("/admin/users");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to send invite");
+      toast.error(err?.response?.data?.message || "Invite failed");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
-      <div className="w-full max-w-2xl bg-white shadow-lg rounded-xl p-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
+      <div className="w-full max-w-4xl bg-white shadow-lg rounded-xl p-6">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Invite New User</h2>
-          <Link
-            to="/admin/users"
-            className="mt-2 sm:mt-0 text-sm text-blue-600 hover:underline text-right"
-          >
+          <Link to="/admin/users" className="text-sm text-blue-600 hover:underline">
             ← Back to Users
           </Link>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
-          <input
-            type="text"
-            placeholder="First Name"
-            value={form.first_name}
-            onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-            className="w-full border px-4 py-2 rounded"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Last Name"
-            value={form.last_name}
-            onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-            className="w-full border px-4 py-2 rounded"
-            required
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full md:col-span-2 border px-4 py-2 rounded"
-            required
-          />
-          <select
-            value={form.role_id}
-            onChange={(e) => setForm({ ...form, role_id: e.target.value })}
-            className="w-full md:col-span-2 border px-4 py-2 rounded"
-            required
-          >
-            <option value="">Select Role</option>
-            {roles.map((role: any) => (
-              <option key={role.id} value={role.id}>
-                {role.name}
-              </option>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {["first_name", "last_name", "email"].map((field) => (
+              <input
+                key={field}
+                type="text"
+                name={field}
+                placeholder={field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                value={(form as any)[field]}
+                onChange={handleChange}
+                className="w-full border px-4 py-2 rounded"
+                required={["first_name", "last_name", "email"].includes(field)}
+              />
             ))}
-          </select>
+            <select
+              name="role_id"
+              value={form.role_id}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+              required
+            >
+              <option value="">Select Role</option>
+              {roles.map((role: any) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <PermissionSelector
+            modules={modules}
+            selectedModules={selectedModules}
+            onChange={setSelectedModules}
+          />
 
           <button
             type="submit"
-            className="md:col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 w-full"
+            className="w-full mt-4 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
           >
             Send Invite
           </button>

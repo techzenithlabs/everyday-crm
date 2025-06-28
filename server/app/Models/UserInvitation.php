@@ -17,15 +17,18 @@ class UserInvitation extends Model
         'last_name',
         'email',
         'role_id',
+        'permissions', // ✅ Add this
         'used',
         'expires_at',
         'created_at',
         'updated_at',
+    ];
+    protected $casts = [
+        'permissions' => 'array',
     ];
 
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
-
 }
