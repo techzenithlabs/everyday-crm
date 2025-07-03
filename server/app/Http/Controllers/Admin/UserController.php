@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\UserInvitation;
+use App\Models\Menu;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
@@ -17,16 +18,11 @@ class UserController extends Controller
     public function listInvitedUsers(Request $request)
     {
         try {
+            $menus = Menu::where('is_active', true)->get();
+
             $query = UserInvitation::with('role')
                 ->select('*')
-                ->selectRaw('(
-                    SELECT COUNT(*)
-                    FROM JSON_TABLE(user_invitations.permissions, "$[*]"
-                        COLUMNS (
-                            perm_id INT PATH "$"
-                        )
-                    ) AS jt
-                ) as permission_count');
+                ->selectRaw("0 as permission_count");
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
@@ -40,15 +36,41 @@ class UserController extends Controller
             $sortBy = $request->input('sort_by', 'created_at');
             $sortOrder = $request->input('sort_order', 'desc');
             $allowedSortFields = ['first_name', 'last_name', 'email', 'created_at', 'expires_at'];
-
             if (!in_array($sortBy, $allowedSortFields)) {
                 $sortBy = 'created_at';
             }
-
             $query->orderBy($sortBy, $sortOrder);
 
             $perPage = $request->input('per_page', 10);
             $users = $query->paginate($perPage);
+
+            $parentMenus = $menus->whereNull('parent_id')->pluck('id')->toArray();
+            $childrenGroupedByParent = $menus->whereNotNull('parent_id')
+                ->groupBy('parent_id')
+                ->map(fn($group) => $group->pluck('id')->toArray());
+
+            $users->getCollection()->transform(function ($user) use ($parentMenus, $childrenGroupedByParent) {
+                $permissions = is_array($user->permissions)
+                    ? $user->permissions
+                    : json_decode($user->permissions, true) ?? [];
+
+                $count = 0;
+
+                foreach ($permissions as $permId) {
+                    if (in_array($permId, $parentMenus)) {
+                        $childIds = $childrenGroupedByParent[$permId] ?? [];
+                        if (count(array_intersect($permissions, $childIds)) > 0) {
+                            continue;
+                        }
+                        $count++;
+                    } else {
+                        $count++;
+                    }
+                }
+
+                $user->permission_count = $count;
+                return $user;
+            });
 
             return response()->json([
                 'status' => true,
@@ -63,6 +85,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
     public function inviteUser(Request $request)
     {

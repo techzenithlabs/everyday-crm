@@ -3,7 +3,7 @@ import authReducer from './slices/authSlice';
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // defaults to localStorage
 import { combineReducers } from 'redux';
-import loadingReducer from './slices/loadingSlice';
+import loadingReducer from './slices/loadingSlice'; 
 
 const rootReducer = combineReducers({
   auth: authReducer,
