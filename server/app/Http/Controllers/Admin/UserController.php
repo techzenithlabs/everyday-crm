@@ -18,12 +18,15 @@ class UserController extends Controller
     public function listInvitedUsers(Request $request)
     {
         try {
+            // Load all active menus (used later)
             $menus = Menu::where('is_active', true)->get();
 
+            // Base query (unchanged)
             $query = UserInvitation::with('role')
                 ->select('*')
-                ->selectRaw("0 as permission_count");
+                ->selectRaw("0 as permission_count"); // Placeholder
 
+            // Apply search filter
             if ($request->filled('search')) {
                 $search = $request->input('search');
                 $query->where(function ($q) use ($search) {
@@ -33,6 +36,7 @@ class UserController extends Controller
                 });
             }
 
+            // Sort
             $sortBy = $request->input('sort_by', 'created_at');
             $sortOrder = $request->input('sort_order', 'desc');
             $allowedSortFields = ['first_name', 'last_name', 'email', 'created_at', 'expires_at'];
@@ -41,32 +45,34 @@ class UserController extends Controller
             }
             $query->orderBy($sortBy, $sortOrder);
 
+            // Paginate
             $perPage = $request->input('per_page', 10);
             $users = $query->paginate($perPage);
 
+            // Prepare menu relationships
             $parentMenus = $menus->whereNull('parent_id')->pluck('id')->toArray();
             $childrenGroupedByParent = $menus->whereNotNull('parent_id')
                 ->groupBy('parent_id')
                 ->map(fn($group) => $group->pluck('id')->toArray());
 
+            // Calculate correct permission_count
             $users->getCollection()->transform(function ($user) use ($parentMenus, $childrenGroupedByParent) {
                 $permissions = is_array($user->permissions)
                     ? $user->permissions
                     : json_decode($user->permissions, true) ?? [];
 
-                $count = 0;
-
-                foreach ($permissions as $permId) {
-                    if (in_array($permId, $parentMenus)) {
-                        $childIds = $childrenGroupedByParent[$permId] ?? [];
-                        if (count(array_intersect($permissions, $childIds)) > 0) {
-                            continue;
-                        }
-                        $count++;
-                    } else {
-                        $count++;
+                // Step 1: Identify parent IDs that should be excluded
+                $excludedParents = [];
+                foreach ($childrenGroupedByParent as $parentId => $childIds) {
+                    if (count(array_intersect($permissions, $childIds)) > 0) {
+                        $excludedParents[] = $parentId;
                     }
                 }
+
+                // Step 2: Count all permissions except excluded parent IDs
+                $count = collect($permissions)
+                    ->reject(fn($id) => in_array($id, $excludedParents))
+                    ->count();
 
                 $user->permission_count = $count;
                 return $user;
@@ -85,6 +91,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
 
     public function inviteUser(Request $request)
