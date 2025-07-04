@@ -112,6 +112,23 @@ class UserController extends Controller
                 ], 422);
             }
 
+            $menuIds = collect($request->permissions ?? []);
+            $menus = Menu::whereIn('id', $menuIds)->get();
+
+            $grouped = [];
+            foreach ($menus as $menu) {
+                $parentId = $menu->parent_id ?: $menu->id;
+                if (!isset($grouped[$parentId])) {
+                    $grouped[$parentId] = [];
+                }
+                if ($menu->parent_id) {
+                    $grouped[$menu->parent_id][] = $menu->id;
+                }
+            }
+            foreach ($grouped as &$children) {
+                $children = array_values(array_unique($children));
+            }
+
             // Step 1: Create invitation entry
             $invitation = UserInvitation::create([
                 'first_name' => $request->first_name,
@@ -120,7 +137,7 @@ class UserController extends Controller
                 'role_id' => $request->role_id,
                 'token' => Str::random(30),
                 'expires_at' => now()->addDays(2),
-                'permissions' => $request->permissions // JSON column
+                'permissions' => $grouped,
             ]);
 
             // Step 2: Send email (optional)
