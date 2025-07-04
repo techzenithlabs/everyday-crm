@@ -18,14 +18,13 @@ class UserController extends Controller
     public function listInvitedUsers(Request $request)
     {
         try {
-
             $menus = Menu::where('is_active', true)->get();
 
             $query = UserInvitation::with('role')
                 ->select('*')
-                ->selectRaw("0 as permission_count"); // Placeholder
+                ->selectRaw("0 as permission_count");
 
-
+            // Search
             if ($request->filled('search')) {
                 $search = $request->input('search');
                 $query->where(function ($q) use ($search) {
@@ -35,6 +34,7 @@ class UserController extends Controller
                 });
             }
 
+            // Sorting
             $sortBy = $request->input('sort_by', 'created_at');
             $sortOrder = $request->input('sort_order', 'desc');
             $allowedSortFields = ['first_name', 'last_name', 'email', 'created_at', 'expires_at'];
@@ -43,35 +43,44 @@ class UserController extends Controller
             }
             $query->orderBy($sortBy, $sortOrder);
 
-
+            // Pagination
             $perPage = $request->input('per_page', 10);
             $users = $query->paginate($perPage);
 
-
-            $parentMenus = $menus->whereNull('parent_id')->pluck('id')->toArray();
-            $childrenGroupedByParent = $menus->whereNotNull('parent_id')
+            // Group child menus by parent_id
+            $childrenGroupedByParent = $menus
+                ->whereNotNull('parent_id')
                 ->groupBy('parent_id')
-                ->map(fn($group) => $group->pluck('id')->toArray());
+                ->map(function ($group) {
+                    return $group->pluck('id')->toArray();
+                });
 
-
-            $users->getCollection()->transform(function ($user) use ($parentMenus, $childrenGroupedByParent) {
+            // Transform to calculate accurate permission count
+            $users->getCollection()->transform(function ($user) use ($childrenGroupedByParent) {
                 $permissions = is_array($user->permissions)
                     ? $user->permissions
                     : json_decode($user->permissions, true) ?? [];
 
+                // Flatten to get only selected menu IDs
+                $flatIds = collect($permissions)->flatMap(function ($value, $key) {
+                    $children = is_array($value) ? $value : [$value];
+                    return array_merge([$key], $children);
+                })->unique()->values()->toArray();
 
+                // Exclude parent if its children are present
                 $excludedParents = [];
                 foreach ($childrenGroupedByParent as $parentId => $childIds) {
-                    if (count(array_intersect($permissions, $childIds)) > 0) {
+                    if (count(array_intersect($flatIds, $childIds)) > 0) {
                         $excludedParents[] = $parentId;
                     }
                 }
 
-                $count = collect($permissions)
+                // Count without excluded parents
+                $finalCount = collect($flatIds)
                     ->reject(fn($id) => in_array($id, $excludedParents))
                     ->count();
 
-                $user->permission_count = $count;
+                $user->permission_count = $finalCount;
                 return $user;
             });
 
@@ -88,6 +97,8 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+
 
 
 

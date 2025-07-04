@@ -41,14 +41,13 @@ const UserList = () => {
   };
 
   const fetchPermissions = async () => {
-  try {
-    const permissions = await getAllPermissions(); // ✅ This returns grouped modules with children
-    setAllPermissions(permissions); // Set into state
-  } catch (err) {
-    console.error("Failed to fetch permissions", err);
-  }
-};
-
+    try {
+      const permissions = await getAllPermissions(); // ✅ This returns grouped modules with children
+      setAllPermissions(permissions); // Set into state
+    } catch (err) {
+      console.error("Failed to fetch permissions", err);
+    }
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -101,6 +100,17 @@ const UserList = () => {
         Active
       </span>
     );
+  };
+
+  const flattenPermissions = (grouped: Record<string | number, number[]>) => {
+    const flat: number[] = [];
+    Object.entries(grouped).forEach(([parentId, children]) => {
+      flat.push(Number(parentId));
+      if (Array.isArray(children)) {
+        flat.push(...children);
+      }
+    });
+    return [...new Set(flat)];
   };
 
   return (
@@ -262,11 +272,11 @@ const UserList = () => {
           isOpen={true}
           user={selectedUser}
           permissions={allPermissions}
-          userPermissions={
-            Array.isArray(selectedUser?.permissions)
-              ? selectedUser?.permissions
-              : JSON.parse(selectedUser?.permissions || "[]")
-          }
+          userPermissions={flattenPermissions(
+            typeof selectedUser?.permissions === "string"
+              ? JSON.parse(selectedUser.permissions || "{}")
+              : selectedUser?.permissions || {}
+          )}
           onClose={() => setAccessModalOpen(false)}
           onSave={(updatedPerms) => {
             setAccessModalOpen(false);
