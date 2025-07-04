@@ -56,7 +56,10 @@ class PermissionController extends Controller
 
     public function listModules()
     {
-        $modules = Menu::select('id', 'name', 'slug', 'icon')->get();
+        $modules = Menu::select('id', 'name', 'slug', 'icon', 'parent_id')
+            ->orderBy('parent_id') // optional for better grouping
+            ->orderBy('name')
+            ->get();
 
         return response()->json([
             'status' => true,
