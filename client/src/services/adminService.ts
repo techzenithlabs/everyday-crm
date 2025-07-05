@@ -65,4 +65,32 @@ export const getAllPermissions = async () => {
   return res.data.data; // This should be an array of grouped permissions
 };
 
+// ✅ Get Sidebar Menus (ordered list)
+export const getSidebarMenus = async () => {
+  try {
+    const res = await api.get("/admin/sidebar-menus");
+    if (!res.data.status) throw new Error("Failed to fetch sidebar menus");
+    return res.data.menus;
+  } catch (error) {
+    console.error("Error fetching sidebar menus:", error);
+    throw error;
+  }
+};
+
+// ✅ Update Sort Order
+export const updateMenuOrder = async (menuIds: number[]) => {
+  try {
+    const res = await api.post("/admin/update-menu-order", {
+      menu_order: menuIds,
+    });
+
+    if (!res.data.status) throw new Error("Failed to update menu order");
+    return res.data;
+  } catch (error) {
+    console.error("Error updating menu order:", error);
+    throw error;
+  }
+};
+
+
 

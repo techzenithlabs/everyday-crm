@@ -1,21 +1,20 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
-use Illuminate\Mail\Mailables\Headers;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
 use App\Helpers\Helper;
 use App\Helpers\EmailHelper;
-use App\Notifications\ForgotPasswordNotification;
 use Illuminate\Support\Facades\Cache;
-use App\Models\UserInvitation;
+use App\Models\Users\User;
+use App\Models\Users\UserInvitation;
 
 class AuthController extends Controller
 {

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\UserInvitation;
-use App\Models\Menu;
+use App\Models\Users\UserInvitation;
+use App\Models\Menus\Menu;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;

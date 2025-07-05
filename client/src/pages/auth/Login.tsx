@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, useAnimation } from "framer-motion";
 import logo from "../../assets/every-day-crm-png.png";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import { loginUser } from "../../services/auth";
 import { login } from "../../redux/slices/authSlice";
 import { AxiosError } from "axios";

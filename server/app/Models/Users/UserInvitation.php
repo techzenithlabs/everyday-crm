@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Users;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Roles\Role;
 
 class UserInvitation extends Model
 {

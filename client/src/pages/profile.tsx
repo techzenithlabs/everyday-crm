@@ -5,7 +5,7 @@ import { getProfile, updateProfile } from "../services/auth";
 import { useDispatch } from "react-redux";
 import { logout,updateUser } from "../redux/slices/authSlice"; // existing
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import { AxiosError } from "axios";
 
 const Profile = () => {
