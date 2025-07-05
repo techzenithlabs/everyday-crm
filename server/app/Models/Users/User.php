@@ -7,7 +7,7 @@
  * @property-read \App\Models\Role|null $role
  */
 
-namespace App\Models;
+namespace App\Models\Users;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

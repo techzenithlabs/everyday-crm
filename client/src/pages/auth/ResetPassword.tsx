@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import logo from "../../assets/every-day-crm-png.png";
 import { forgotPassword } from "../../services/auth"; // You'll create this
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import api from "../../api";
 import { getRoles,getModules} from "../../services/adminService";
 import PermissionSelector from "../../components/permissions/PermissionSelector";

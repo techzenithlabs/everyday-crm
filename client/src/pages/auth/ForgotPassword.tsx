@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import logo from "../../assets/every-day-crm-png.png";
 import { resetPassword } from "../../services/auth"; // API call you define

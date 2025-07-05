@@ -1,13 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\MenuController;
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\MenuController as AdminMenuController;;
 
 // --- Public Auth Routes ---
 Route::post('/register', [AuthController::class, 'register']);
@@ -48,6 +49,8 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/modules', [PermissionController::class, 'listModules']);
     Route::get('/modules-with-permissions', [PermissionController::class, 'getModulesWithPermissions']);
     Route::get('/permissions/grouped', [PermissionController::class, 'allGroupedPermissions']);
+    Route::post('/update-menu-order', [MenuController::class, 'updateSortOrder']);
+    Route::get('/sidebar-menus', [AdminMenuController::class, 'getSidebarMenus']);
 
     // You can add more admin-specific endpoints here in future
 });

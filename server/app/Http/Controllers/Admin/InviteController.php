@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use App\Models\UserInvitation;
+use App\Models\Users\UserInvitation;
 use App\Helpers\EmailHelper;
 
 class InviteController extends Controller

@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Profile from "./pages/profile";
@@ -14,12 +13,23 @@ import InviteUser from "./pages/admin/InviteUser";
 import CheckEmail from "./pages/auth/CheckEmail";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import UserList from "./pages/admin/UserList";
+import MenuSettings from "./pages/admin/MenuSettings";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useSelector } from "react-redux";
+import type { RootState } from "./redux/store";
+import ReorderMenu from "./components/admin/ReorderMenu";
+
 function App() {
+  const user = useSelector((state: RootState) => state.auth.user);
+
   return (
     <BrowserRouter>
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />{" "}
-      {/*Toast Messages*/}
+      {/* ✅ Global Toast Notification */}
+      <ToastContainer position="top-right" autoClose={3000} />
+
       <Routes>
+        {/* ✅ Public Routes */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route
           path="/login"
@@ -45,7 +55,6 @@ function App() {
             </PublicRoute>
           }
         />
-
         <Route
           path="/forgot-password"
           element={
@@ -54,7 +63,6 @@ function App() {
             </PublicRoute>
           }
         />
-
         <Route
           path="/check-email"
           element={
@@ -63,7 +71,6 @@ function App() {
             </PublicRoute>
           }
         />
-
         <Route
           path="/verify-email"
           element={
@@ -72,16 +79,14 @@ function App() {
             </PublicRoute>
           }
         />
-
-        {/* ✅ Social login success route (public) */}
         <Route path="/social-success" element={<SocialSuccess />} />
 
-        {/* Protected Routes */}
+        {/* ✅ Protected Routes */}
         <Route
           path="/dashboard"
           element={
             <PrivateRoute>
-              <AppShell title=" Dashboard">
+              <AppShell title="Dashboard">
                 <Dashboard />
               </AppShell>
             </PrivateRoute>
@@ -98,7 +103,18 @@ function App() {
           }
         />
 
-        {/* Admin Routes */}
+        {/* ✅ Admin Routes */}
+
+        <Route
+          path="/admin/menu-settings"
+          element={
+            <PrivateRoute>
+              <AppShell title="Menu Settings">
+                <MenuSettings />
+              </AppShell>
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/admin/teams"
           element={
@@ -119,6 +135,20 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* ✅ Admin Only Route (Menu Settings) */}
+        {user?.role_id === 1 && (
+          <Route
+            path="/admin/menu-settings"
+            element={
+              <PrivateRoute>
+                <AppShell title="Menu Settings">
+                  <MenuSettings />
+                </AppShell>
+              </PrivateRoute>
+            }
+          />
+        )}
       </Routes>
     </BrowserRouter>
   );

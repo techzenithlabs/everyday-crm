@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
-use App\Models\Menu;
+use App\Models\Menus\Menu;
 
 class PermissionController extends Controller
 {

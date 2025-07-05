@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import Logo from "../../assets/every-day-crm-png.png";
 
 const VerifyEmail = () => {

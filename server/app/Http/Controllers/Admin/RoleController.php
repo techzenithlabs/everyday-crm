@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
-use App\Models\RoleGroup;
+use App\Models\Roles\RoleGroup;
 
 class RoleController extends Controller
 {

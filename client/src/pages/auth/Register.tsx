@@ -1,7 +1,7 @@
   import { useState, useEffect } from "react";
   import { useNavigate, useSearchParams } from "react-router-dom";
   import { motion } from "framer-motion";
-  import toast from "react-hot-toast";
+  import { toast } from "react-toastify";
   import axios from "axios";
   import logo from "../../assets/every-day-crm-png.png";
 

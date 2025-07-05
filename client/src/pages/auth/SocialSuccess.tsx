@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../../redux/slices/authSlice";
 import { getProfile } from "../../services/auth";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import { startLoading, stopLoading } from "../../redux/slices/loadingSlice";
 
 const SocialSuccess = () => {
