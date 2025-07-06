@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../redux/store";
 import api from "../api";
 
-// Icon imports
 import {
   Home,
   Users,
@@ -14,7 +13,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-// Map backend icon names to actual components
 const iconMap: Record<string, any> = {
   home: Home,
   users: Users,
@@ -27,24 +25,38 @@ const Sidebar = () => {
   const user = useSelector((state: RootState) => state.auth.user);
   const roleId = user?.role_id ?? 0;
 
+  const [rehydrated, setRehydrated] = useState(false);
   const [menus, setMenus] = useState<any[]>([]);
   const [openMenus, setOpenMenus] = useState<number[]>([]);
 
-  // Toggle parent menus
-  const toggleMenu = (id: number) => {
-    setOpenMenus((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
-
+  // ✅ Wait for redux-persist hydration
   useEffect(() => {
+    const interval = setInterval(() => {
+      const persistRoot = localStorage.getItem("persist:root");
+      if (persistRoot) {
+        const parsed = JSON.parse(persistRoot);
+        const auth = parsed.auth ? JSON.parse(parsed.auth) : null;
+        if (auth?.token && auth?.user) {
+          setRehydrated(true);
+          clearInterval(interval);
+        }
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // ✅ Fetch menus after hydration
+  useEffect(() => {
+   if (!rehydrated || !localStorage.getItem("token")) return;
+
     const fetchMenus = async () => {
       try {
         const res = await api.get("/admin/sidebar-menus");
         if (res.data.status) {
           const flatMenus = res.data.menus;
 
-          // Group into parent > children structure
+          // 👇 Group into parent -> children structure
           const grouped: any = {};
           flatMenus.forEach((menu: any) => {
             if (!menu.parent_id) {
@@ -57,10 +69,11 @@ const Sidebar = () => {
             }
           });
 
-          // Convert to array and sort
+          // Convert to array & sort
           const sorted = Object.values(grouped).sort(
             (a: any, b: any) => a.sort_order - b.sort_order
           );
+
           setMenus(sorted);
         }
       } catch (error) {
@@ -69,7 +82,13 @@ const Sidebar = () => {
     };
 
     fetchMenus();
-  }, []);
+  }, [rehydrated, user]);
+
+  const toggleMenu = (id: number) => {
+    setOpenMenus((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div className="bg-[#1d2939] text-white w-64 flex flex-col p-4 min-h-screen overflow-y-auto">
@@ -80,11 +99,10 @@ const Sidebar = () => {
           const { id, path, name, icon, children, roleAccess = [] } = menu;
           const Icon = iconMap[icon?.toLowerCase()] ?? FileText;
           const hasAccess = roleId === 1 || roleAccess.includes(roleId);
-          if (!hasAccess) return null;
 
+          if (!hasAccess) return null;
           const isOpen = openMenus.includes(id);
 
-          // 🔹 Render standalone menu
           if (!children.length) {
             return (
               <NavLink
@@ -104,7 +122,6 @@ const Sidebar = () => {
             );
           }
 
-          // 🔹 Render parent with children
           return (
             <div key={id} className="w-full">
               <button
@@ -115,11 +132,7 @@ const Sidebar = () => {
                   <Icon className="h-5 w-5" />
                   <span>{name}</span>
                 </div>
-                {isOpen ? (
-                  <ChevronDown size={16} />
-                ) : (
-                  <ChevronRight size={16} />
-                )}
+                {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
 
               {isOpen && (
