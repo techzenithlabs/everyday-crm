@@ -22,6 +22,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
+    /* ✅ Add this */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
     /* ✅ Add this to support process.env */
     "types": ["vite/client", "node"]
   },

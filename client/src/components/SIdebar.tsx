@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import type { RootState } from "../redux/store";
 import api from "../api";
 
@@ -22,6 +23,7 @@ const iconMap: Record<string, any> = {
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth.user);
   const roleId = user?.role_id ?? 0;
 
@@ -48,7 +50,7 @@ const Sidebar = () => {
 
   // ✅ Fetch menus after hydration
   useEffect(() => {
-   if (!rehydrated || !localStorage.getItem("token")) return;
+    if (!rehydrated || !localStorage.getItem("token")) return;
 
     const fetchMenus = async () => {
       try {
@@ -125,14 +127,27 @@ const Sidebar = () => {
           return (
             <div key={id} className="w-full">
               <button
-                onClick={() => toggleMenu(id)}
-                className="flex items-center justify-between gap-3 px-4 py-3 w-full rounded text-left hover:bg-[#1de9b6]/20 transition duration-200"
+                onClick={() => {
+                  toggleMenu(id);
+                  if (path) {
+                   navigate(path); // OR use navigate(path) with useNavigate()
+                  }
+                }}
+                className={`flex items-center justify-between gap-3 px-4 py-3 w-full rounded text-left transition duration-200 ${
+                  location.pathname === path
+                    ? "bg-teal-500 text-white font-semibold"
+                    : "hover:bg-[#1de9b6]/20 text-white"
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon className="h-5 w-5" />
                   <span>{name}</span>
                 </div>
-                {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                {isOpen ? (
+                  <ChevronDown size={16} />
+                ) : (
+                  <ChevronRight size={16} />
+                )}
               </button>
 
               {isOpen && (
