@@ -104,7 +104,7 @@ class UserController extends Controller
 
     public function inviteUser(Request $request)
     {
-        //header('Access-Control-Allow-Origin:*');
+
         try {
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email|unique:user_invitations,email',
@@ -155,10 +155,10 @@ class UserController extends Controller
             EmailHelper::send(
                 $invitation->email,
                 'You’re invited to Everyday CRM!',
-                'emails.invite_user',
+                'emails.invite-user',
                 [
                     'name' => $invitation->first_name,
-                    'register_url' => url('/register/' . $invitation->token),
+                    'register_url' => config('app.frontend_url') . '/register?token=' . $invitation->token,
                 ]
             );
 
