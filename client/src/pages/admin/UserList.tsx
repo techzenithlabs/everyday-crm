@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getInvitedUsers } from "../../services/adminService";
-import { formatHumanDate } from "../../utils/dateHelpers";
+//import { formatHumanDate } from "../../utils/dateHelpers";
 import ReactPaginate from "react-paginate";
 import EditUserModal from "../../components/modals/EditUserModal";
 import ManageAccessModal from "../../components/modals/ManageAccessModal";
 import { getAllPermissions } from "../../services/adminService";
 import { updateUserPermissions } from "@/services/userPermissionService";
 import { toast } from "react-toastify";
+import { showConfirm,showSuccess,showError } from "@/utils/ConfirmDialogHelpers";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -108,6 +109,12 @@ const UserList = () => {
   const handleSavePermissions = async (updatedPermissions: Record<number, number[]>) => {
   try {
     if (!selectedUser?.id) return;
+     const confirmed = await showConfirm(
+      "Confirm Update",
+      "Are you sure you want to update this user's permissions?",
+      "Yes, Update"
+    );
+    if (!confirmed) return;
 
     await updateUserPermissions(selectedUser.id, updatedPermissions);
 
