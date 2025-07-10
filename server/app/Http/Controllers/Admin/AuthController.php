@@ -15,33 +15,37 @@ use App\Helpers\EmailHelper;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Users\User;
 use App\Models\Users\UserInvitation;
+use App\Models\Users\UserPermission;
+use App\Models\Users\UserInfo;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
-    {
-        $request->validate([
-            'token' => 'required|uuid',
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'required|email',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
+{
+    $request->validate([
+        'token' => 'required|uuid',
+        'first_name' => 'required|string|max:100',
+        'last_name' => 'required|string|max:100',
+        'email' => 'required|email',
+        'password' => 'required|string|min:6|confirmed',
+    ]);
 
-        $invitation = UserInvitation::where('token', $request->token)
-            ->where('used', false)
-            ->where('expires_at', '>', now())
-            ->first();
+    $invitation = UserInvitation::where('token', $request->token)
+        ->where('used', false)
+        ->where('expires_at', '>', now())
+        ->first();
 
-        if (!$invitation) {
-            return response()->json(['message' => 'Token is invalid or expired'], 400);
-        }
+    if (!$invitation) {
+        return response()->json(['message' => 'Token is invalid or expired'], 400);
+    }
 
-        if (User::where('email', $request->email)->exists()) {
-            return response()->json(['message' => 'User already exists with this email.'], 409);
-        }
+    if (User::where('email', $request->email)->exists()) {
+        return response()->json(['message' => 'User already exists with this email.'], 409);
+    }
 
-
+    DB::beginTransaction();
+    try {
+        // ✅ Step 1: Create user
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name'  => $request->last_name,
@@ -52,11 +56,23 @@ class AuthController extends Controller
             'email_verified_at' => null,
         ]);
 
+        // ✅ Step 2: Create user_infos with only user_id
+        UserInfo::create([
+            'user_id' => $user->id,
+        ]);
 
-        $invitation->update(['used' => true, 'registered_at' => now()]);
+        // ✅ Step 3: Store permissions (from invitation)
+        UserPermission::create([
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'permissions' => $invitation->permissions, // Store grouped format as-is
+        ]);
 
 
-        // ✅ Step 3: Create email verification token
+        // ✅ Step 4: Delete invitation
+        $invitation->delete();
+
+        // ✅ Step 5: Create email verification token
         $verifyToken = Str::uuid();
         DB::table('email_verification_tokens')->insert([
             'user_id'    => $user->id,
@@ -64,25 +80,35 @@ class AuthController extends Controller
             'expires_at' => now()->addHours(24),
         ]);
 
-        // ✅ Step 4: Send verification email
+        // ✅ Step 6: Send email
         $verifyUrl = config('app.frontend_url', env('REACT_APP_URL')) . "verify-email?token={$verifyToken}";
 
         EmailHelper::send(
             $user->email,
             'Verify your email – Everyday CRM',
-            'emails.verify-email', // Create this Blade template
+            'emails.verify-email',
             [
                 'name' => $user->first_name,
                 'url' => $verifyUrl,
             ]
         );
 
-        // ✅ Step 5: Respond with frontend redirect URL
+        DB::commit();
+
         return response()->json([
             'message' => 'User registered. Please verify your email.',
-            'redirect' => '/check-email' // used in frontend to navigate
+            'redirect' => '/check-email'
         ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Registration failed.',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 
 
 

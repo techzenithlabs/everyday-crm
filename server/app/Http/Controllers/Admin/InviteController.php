@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use App\Models\Users\UserInvitation;
+//use App\Models\Users\UserInvitation;
+use App\Models\Users\User;
 use App\Helpers\EmailHelper;
 
 class InviteController extends Controller
@@ -21,12 +22,13 @@ class InviteController extends Controller
 
         $token = Str::uuid();
 
-        UserInvitation::create([
-            'token' => $token,
+        User::create([
+            'role_id' => $request->role_id,
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'role_id' => $request->role_id,
+            'token' => $token,
+            'status' => 0, // 0 = pending, 1 = active
             'expires_at' => now()->addDays(2),
         ]);
 

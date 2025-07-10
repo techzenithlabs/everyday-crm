@@ -146,27 +146,38 @@ class UserController extends Controller
                 'last_name' => $request->last_name,
                 'email' => $request->email,
                 'role_id' => $request->role_id,
-                'token' => Str::random(30),
+                'token' => Str::uuid(),
                 'expires_at' => now()->addDays(2),
                 'permissions' => $grouped,
             ]);
 
-            // Step 2: Send email (optional)
-            EmailHelper::send(
-                $invitation->email,
-                'You’re invited to Everyday CRM!',
-                'emails.invite_user',
-                [
-                    'name' => $invitation->first_name,
-                    'register_url' => url('/register/' . $invitation->token),
-                ]
-            );
+            //Step 2: Send email (optional)
+            // EmailHelper::send(
+            //     $invitation->email,
+            //     'You’re invited to Everyday CRM!',
+            //     'emails.invite_user',
+            //     [
+            //         'name' => $invitation->first_name,
+            //         'register_url' => url('/register/' . $invitation->token),
+            //     ]
+            // );
 
-            return response()->json([
-                'status' => true,
-                'message' => 'Invitation sent successfully',
-                'data' => $invitation
-            ]);
+            
+                    
+            // return response()->json([
+            //     'status' => true,
+            //     'message' => 'Invitation sent successfully',
+            //     'data' => $invitation
+            // ]);
+
+            //  Preview email HTML in browser instead of sending
+            $html = view('emails.invite-user', [
+                'name' => $invitation->first_name,
+                'register_url' => config('app.frontend_url') . '/register?token=' . $invitation->token,
+            ])->render();
+
+            return response($html); // Show email content in browser
+
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
