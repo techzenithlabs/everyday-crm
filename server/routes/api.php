@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\InviteController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\MenuController as AdminMenuController;
 
@@ -56,21 +57,35 @@ Route::middleware(['auth:sanctum'])->group(function () {
 /// 🛠️ ADMIN PANEL ROUTES (Protected)
 /// ─────────────────────────────
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
-    // Role & Permission
+
+    /// ─────────────────────────────
+    /// 🧠 ROLES & MODULE PERMISSIONS
+    /// ─────────────────────────────
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::get('/role-permissions/{roleId}', [RoleController::class, 'getRolePermissions']);
     Route::get('/modules', [PermissionController::class, 'listModules']);
     Route::get('/modules-with-permissions', [PermissionController::class, 'getModulesWithPermissions']);
     Route::get('/permissions/grouped', [PermissionController::class, 'allGroupedPermissions']);
 
-    // User Management
-    Route::post('/invite-user', [UserController::class, 'inviteUser']);
-    Route::get('/users', [UserController::class, 'listInvitedUsers']);
+    /// ─────────────────────────────
+    /// 🛡️ USER PERMISSIONS MANAGEMENT
+    /// ─────────────────────────────
+    Route::get('/users/{user}/permissions', [PermissionController::class, 'getUserPermissions']);
+    Route::post('/users/{user}/permissions', [PermissionController::class, 'updateUserPermissions']);
 
-    // Menu Sorting & Sidebar Menus
+    /// ─────────────────────────────
+    /// 👤 USER MANAGEMENT
+    /// ─────────────────────────────
+    Route::post('/invite-user', [InviteController::class, 'inviteUser']);
+    Route::get('/users', [UserController::class, 'listUsers']);
+
+    /// ─────────────────────────────
+    /// 🧩 MENU & SIDEBAR CONFIG
+    /// ─────────────────────────────
     Route::post('/update-menu-order', [MenuController::class, 'updateSortOrder']);
     Route::get('/sidebar-menus', [AdminMenuController::class, 'getSidebarMenus']);
 });
+
 
 
 /// ─────────────────────────────
