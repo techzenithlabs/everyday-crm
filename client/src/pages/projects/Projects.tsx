@@ -9,7 +9,9 @@ import CreateProjectModal from "@/components/projects/CreateProjectModal"; // âœ
 const Projects = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { projects, loading } = useSelector((state: RootState) => state.projects);
+  const { projects, loading } = useSelector(
+    (state: RootState) => state.projects
+  );
 
   useEffect(() => {
     dispatch(fetchAllProjects() as any);
@@ -31,7 +33,10 @@ const Projects = () => {
           {projects.map((project) => (
             <div
               key={project.id}
-              onClick={() => navigate(`/projects/${project.id}/jobs`)} // âœ… Always redirect to Jobs Board
+              onClick={() => {
+                localStorage.setItem("currentProjectId", project.id.toString());
+                navigate(`/projects/${project.id}`);
+              }}
               className="cursor-pointer border p-4 rounded shadow hover:bg-gray-100"
             >
               <h3 className="text-lg font-semibold">{project.name}</h3>

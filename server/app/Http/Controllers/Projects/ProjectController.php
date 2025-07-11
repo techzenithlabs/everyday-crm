@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Projects\Project;
 use Illuminate\Support\Facades\Log;
+use App\Models\Projects\Board;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class ProjectController extends Controller
@@ -32,6 +34,24 @@ class ProjectController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        $project = Project::find($id);
+
+        if (!$project) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Project not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $project,
+        ]);
+    }
+
+
     public function store(Request $request)
     {
         try {
@@ -43,12 +63,23 @@ class ProjectController extends Controller
             $project = Project::create([
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(), // Assuming the user is authenticated
             ]);
+
+            // ✅ Auto-create default boards (Jobs Board, Permits Board)
+            $defaultBoards = ['Jobs Board', 'Permits Board'];
+            foreach ($defaultBoards as $index => $title) {
+                Board::create([
+                    'project_id' => $project->id,
+                    'title' => $title,
+                    'sort_order' => $index + 1,
+                    'created_by' => Auth::id(), // Optional, if your Board model tracks this
+                ]);
+            }
 
             return response()->json([
                 'status' => true,
-                'message' => 'Project created successfully.',
+                'message' => 'Project created successfully with default boards.',
                 'data' => $project,
             ]);
         } catch (Exception $e) {

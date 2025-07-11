@@ -17,7 +17,7 @@ export const getProjectById = async (id: number) => {
 
 // ✅ Create new project
 export const createProject = async (payload: {
-  name: string;
+  title: string;
   description?: string;
 }) => {
   const res = await api.post("/projects", payload);

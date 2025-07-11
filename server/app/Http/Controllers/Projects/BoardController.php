@@ -10,6 +10,16 @@ use Exception;
 
 class BoardController extends Controller
 {
+    public function index($projectId)
+    {
+        $boards = Board::where('project_id', $projectId)->orderBy('sort_order')->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $boards,
+        ]);
+    }
+
     public function store(Request $request)
     {
         try {
