@@ -22,6 +22,7 @@ class AuthController extends Controller
 {
     public function register(Request $request)
 {
+    
     $request->validate([
         'token' => 'required|uuid',
         'first_name' => 'required|string|max:100',
@@ -30,7 +31,7 @@ class AuthController extends Controller
         'password' => 'required|string|min:6|confirmed',
     ]);
 
-    $invitation = UserInvitation::where('token', $request->token)
+    $invitation = User::where('token', $request->token)
         ->where('used', false)
         ->where('expires_at', '>', now())
         ->first();
@@ -319,7 +320,7 @@ class AuthController extends Controller
 
     public function verifyRegisterToken($token)
     {
-        $invitation = UserInvitation::where('token', $token)
+        $invitation = User::where('token', $token)
             ->where('used', false)
             ->where('expires_at', '>', now())
             ->first();

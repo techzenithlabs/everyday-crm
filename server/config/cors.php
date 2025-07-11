@@ -7,6 +7,7 @@ return [
         'logout',
         'register',
         'sanctum/csrf-cookie',
+        'admin/*', // Admin routes
     ],
 
     'allowed_methods' => ['*'],

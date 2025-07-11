@@ -1,7 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-
+import { flattenPermissions,groupPermissions } from "@/utils/permissionHelpers";
 export type Permission = {
   id: number;
   name: string;
@@ -11,10 +11,10 @@ export type Permission = {
 interface ManageAccessModalProps {
   isOpen: boolean;
   user: any;
-  permissions: Permission[]; // [{ id, name, children: [...] }]
-  userPermissions: number[]; // [1, 2, 3]
+  permissions: Permission[]; // Grouped permissions from backend
+  userPermissions: number[]; // Already flattened like [1,2,3]
   onClose: () => void;
-  onSave: (updatedPermissions: number[]) => void;
+  onSave: (updatedPermissions: Record<number, number[]>) => void;
 }
 
 export default function ManageAccessModal({
@@ -26,10 +26,36 @@ export default function ManageAccessModal({
   onSave,
 }: ManageAccessModalProps) {
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
+  const flattenPermissions = (
+    permObject: Record<number, number[]>
+  ): number[] => {
+    const flat: number[] = [];
+    for (const [parent, children] of Object.entries(permObject)) {
+      flat.push(parseInt(parent)); // Add parent
+      flat.push(...children); // Add all children
+    }
+    return [...new Set(flat)]; // remove duplicates if any
+  };
 
   useEffect(() => {
-    setSelectedPermissions(userPermissions || []);
-  }, [userPermissions]);
+    if (
+      isOpen &&
+      userPermissions &&
+      typeof userPermissions === "object" &&
+      !Array.isArray(userPermissions)
+    ) {
+      const flat = flattenPermissions(
+        userPermissions as Record<number, number[]>
+      );
+      console.log("Flattened Permissions:", flat);
+      setSelectedPermissions(flat);
+    } else if (Array.isArray(userPermissions)) {
+      console.log("Already flat permissions array:", userPermissions);
+      setSelectedPermissions(userPermissions);
+    } else {
+      setSelectedPermissions([]);
+    }
+  }, [userPermissions, isOpen]);
 
   const togglePermission = (id: number) => {
     setSelectedPermissions((prev) =>
@@ -60,7 +86,6 @@ export default function ManageAccessModal({
 
   const getSelectedPermissionCount = (): number => {
     let count = 0;
-
     permissions.forEach((perm) => {
       if (perm.children && perm.children.length > 0) {
         const selectedChildren = perm.children.filter((child) =>
@@ -73,12 +98,12 @@ export default function ManageAccessModal({
         }
       }
     });
-
     return count;
   };
 
   const handleSubmit = () => {
-    onSave(selectedPermissions);
+     const grouped = groupPermissions(selectedPermissions, permissions);
+     onSave(grouped);
   };
 
   return (
@@ -130,7 +155,6 @@ export default function ManageAccessModal({
                       key={perm.id}
                       className="border rounded-md p-4 shadow-sm"
                     >
-                      {/* Parent Checkbox */}
                       <label className="flex items-center gap-2 font-semibold text-gray-900">
                         <input
                           type="checkbox"
@@ -146,7 +170,6 @@ export default function ManageAccessModal({
                         {perm.name}
                       </label>
 
-                      {/* Child Permissions */}
                       {perm.children && perm.children.length > 0 && (
                         <div className="mt-3 ml-5 flex flex-col gap-2 text-sm text-gray-700">
                           {perm.children.map((child) => (

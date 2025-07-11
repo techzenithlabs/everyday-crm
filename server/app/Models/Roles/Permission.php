@@ -3,7 +3,10 @@
 namespace App\Models\Roles;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Models\Permission as SpatiePermission;
+use App\Models\Menus\Menu;
+use App\Models\Roles\Role;
 
 class Permission extends SpatiePermission
 {
@@ -19,9 +22,9 @@ class Permission extends SpatiePermission
         'can_delete',
     ];
 
-    public function role()
+    public function roles() : BelongsToMany
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsToMany(Role::class, 'role_has_permissions');
     }
 
     public function menu()

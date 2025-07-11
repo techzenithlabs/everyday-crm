@@ -15,7 +15,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Roles\Role;
-use App\Models\Permission;
+use App\Models\Roles\Permission;
+use App\Models\Users\UserPermission;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -28,6 +29,8 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    public $timestamps = true; // ✅ Enable timestamps
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -36,6 +39,15 @@ class User extends Authenticatable
         'role_id',
         'status',
         'password',
+        'token',       // 'permissions',
+        'used',
+        'is_registered',
+        'remember_token',
+        'expires_at',
+    ];
+
+     protected $casts = [
+        'permissions' => 'array',
     ];
 
     /**
@@ -69,5 +81,10 @@ class User extends Authenticatable
     public function info()
     {
         return $this->hasOne(UserInfo::class);
+    }
+
+    public function userPermissions()
+    {
+        return $this->hasOne(UserPermission::class);
     }
 }

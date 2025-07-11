@@ -4,7 +4,8 @@ namespace App\Models\Menus;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\Permission\Models\Permission;
+//use Spatie\Permission\Models\Permission;
+use App\Models\Roles\Permission; // Assuming you have a Permission model in Roles namespace
 
 class Menu extends Model
 {

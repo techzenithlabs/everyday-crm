@@ -20,8 +20,11 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
         $this->call([
-        RolesTableSeeder::class,      // ✅ Seed roles first
-        AdminUserSeeder::class,
+        // RolesTableSeeder::class,      // ✅ Seed roles first
+        // AdminUserSeeder::class,
+         MenuAndPermissionsSeeder::class,
+         RoleGroupsAndRolesSeeder::class,
+
     ]);
     }
 }

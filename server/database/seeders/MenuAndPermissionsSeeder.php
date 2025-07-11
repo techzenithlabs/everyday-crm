@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Menu;
-use App\Models\Permission;
+use App\Models\Menus\Menu;
+use App\Models\Roles\Permission;
 
 class MenuAndPermissionsSeeder extends Seeder
 {

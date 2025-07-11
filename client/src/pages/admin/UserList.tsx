@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getInvitedUsers } from "../../services/adminService";
-import { formatHumanDate } from "../../utils/dateHelpers";
+//import { formatHumanDate } from "../../utils/dateHelpers";
 import ReactPaginate from "react-paginate";
 import EditUserModal from "../../components/modals/EditUserModal";
 import ManageAccessModal from "../../components/modals/ManageAccessModal";
 import { getAllPermissions } from "../../services/adminService";
+import { updateUserPermissions } from "@/services/userPermissionService";
+import { toast } from "react-toastify";
+import { showConfirm,showSuccess,showError } from "@/utils/ConfirmDialogHelpers";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -48,6 +51,7 @@ const UserList = () => {
       console.error("Failed to fetch permissions", err);
     }
   };
+  
 
   useEffect(() => {
     fetchUsers();
@@ -102,16 +106,28 @@ const UserList = () => {
     );
   };
 
-  const flattenPermissions = (grouped: Record<string | number, number[]>) => {
-    const flat: number[] = [];
-    Object.entries(grouped).forEach(([parentId, children]) => {
-      flat.push(Number(parentId));
-      if (Array.isArray(children)) {
-        flat.push(...children);
-      }
-    });
-    return [...new Set(flat)];
-  };
+  const handleSavePermissions = async (updatedPermissions: Record<number, number[]>) => {
+  try {
+    if (!selectedUser?.id) return;
+     const confirmed = await showConfirm(
+      "Confirm Update",
+      "Are you sure you want to update this user's permissions?",
+      "Yes, Update"
+    );
+    if (!confirmed) return;
+
+    await updateUserPermissions(selectedUser.id, updatedPermissions);
+
+    toast.success("Permissions updated successfully"); 
+
+    setAccessModalOpen(false); // Close modal
+    fetchUsers();              // Refresh list
+  } catch (error) {
+    toast.error("❌ Failed to update permissions");;
+  }
+};
+
+  
 
   return (
     <div className="px-6 py-8">
@@ -272,16 +288,14 @@ const UserList = () => {
           isOpen={true}
           user={selectedUser}
           permissions={allPermissions}
-          userPermissions={flattenPermissions(
-            typeof selectedUser?.permissions === "string"
-              ? JSON.parse(selectedUser.permissions || "{}")
-              : selectedUser?.permissions || {}
-          )}
+          userPermissions={
+            selectedUser?.user_permissions?.permissions &&
+            typeof selectedUser.user_permissions.permissions === "object"
+              ? selectedUser.user_permissions.permissions
+              : {}
+          }
           onClose={() => setAccessModalOpen(false)}
-          onSave={(updatedPerms) => {
-            setAccessModalOpen(false);
-            fetchUsers(); // Refresh updated permission count
-          }}
+          onSave={handleSavePermissions}
         />
       )}
     </div>

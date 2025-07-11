@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
+use App\Models\Users\UserPermission;
 use App\Models\Menus\Menu;
 
 class PermissionController extends Controller
@@ -65,5 +66,49 @@ class PermissionController extends Controller
             'status' => true,
             'modules' => $modules
         ]);
+    }
+
+    // Get existing permissions of a user
+    public function getUserPermissions($id)
+    {
+        try {
+            $userPermissions = UserPermission::where('user_id', $id)->first();
+            return response()->json([
+                'status' => true,
+                'data' => $userPermissions?->permissions ?? [],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error fetching permissions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Save/update permissions of a user
+    public function updateUserPermissions(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'permissions' => 'required|array',
+            ]);
+
+            UserPermission::updateOrCreate(
+                ['user_id' => $id],
+                ['permissions' => $validated['permissions']]
+            );
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Permissions updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error updating permissions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
