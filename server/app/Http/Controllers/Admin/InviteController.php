@@ -117,7 +117,7 @@ class InviteController extends Controller
                 'emails.invite-user',
                 [
                     'name' => $user->first_name,
-                    'register_url' => config('app.frontend_url') . '/register?token=' . $user->token,
+                    'register_url' => config('app.frontend_url') . 'register?token=' . $user->token,
                 ]
             );
 

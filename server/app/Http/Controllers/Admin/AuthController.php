@@ -39,20 +39,25 @@ class AuthController extends Controller
             return response()->json(['message' => 'Token is invalid or expired'], 400);
         }
 
-        if (User::where('email', $request->email)->exists()) {
-            return response()->json(['message' => 'User already exists with this email.'], 409);
-        }
 
 
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'role_id'    => $invitation->role_id,
-            'password'   => Hash::make($request->password),
-            'status'     => 0,
-            'email_verified_at' => null,
-        ]);
+        // if (User::where('email', $request->email)->exists()) {
+        //     return response()->json(['message' => 'User already exists with this email.'], 409);
+        // }
+
+
+        $user = User::updateOrCreate(
+            ['email' => $request->email],
+            [
+                'first_name' => $request->first_name,
+                'last_name'  => $request->last_name,
+                'role_id'    => $invitation->role_id,
+                'password'   => Hash::make($request->password),
+                'status'     => 0,
+                'is_registered' => true,
+                'email_verified_at' => null,
+            ]
+        );
 
 
         $invitation->update(['used' => true, 'registered_at' => now()]);
@@ -364,7 +369,7 @@ class AuthController extends Controller
             'email_verified_at' => now()
         ]);
 
-       // DB::table('email_verification_tokens')->where('token', $token)->delete();
+        // DB::table('email_verification_tokens')->where('token', $token)->delete();
 
         return response()->json(['message' => 'Email verified successfully']);
     }
