@@ -18,6 +18,8 @@ use App\Models\Roles\Role;
 use App\Models\Roles\Permission;
 use App\Models\Users\UserPermission;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Users\UserInfo;
+
 
 class User extends Authenticatable
 {

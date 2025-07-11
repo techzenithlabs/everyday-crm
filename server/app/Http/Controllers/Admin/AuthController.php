@@ -15,65 +15,55 @@ use App\Helpers\EmailHelper;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Users\User;
 use App\Models\Users\UserInvitation;
-use App\Models\Users\UserPermission;
-use App\Models\Users\UserInfo;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
-{
-    
-    $request->validate([
-        'token' => 'required|uuid',
-        'first_name' => 'required|string|max:100',
-        'last_name' => 'required|string|max:100',
-        'email' => 'required|email',
-        'password' => 'required|string|min:6|confirmed',
-    ]);
-
-    $invitation = User::where('token', $request->token)
-        ->where('used', false)
-        ->where('expires_at', '>', now())
-        ->first();
-
-    if (!$invitation) {
-        return response()->json(['message' => 'Token is invalid or expired'], 400);
-    }
-
-    if (User::where('email', $request->email)->exists()) {
-        return response()->json(['message' => 'User already exists with this email.'], 409);
-    }
-
-    DB::beginTransaction();
-    try {
-        // ✅ Step 1: Create user
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'role_id'    => $invitation->role_id,
-            'password'   => Hash::make($request->password),
-            'status'     => 0,
-            'email_verified_at' => null,
-        ]);
-
-        // ✅ Step 2: Create user_infos with only user_id
-        UserInfo::create([
-            'user_id' => $user->id,
-        ]);
-
-        // ✅ Step 3: Store permissions (from invitation)
-        UserPermission::create([
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'permissions' => $invitation->permissions, // Store grouped format as-is
+    {
+        $request->validate([
+            'token' => 'required|uuid',
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'email' => 'required|email',
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
 
-        // ✅ Step 4: Delete invitation
-        $invitation->delete();
 
-        // ✅ Step 5: Create email verification token
+        $invitation = User::where('token', $request->token)
+            ->where('used', false)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$invitation) {
+            return response()->json(['message' => 'Token is invalid or expired'], 400);
+        }
+
+
+
+        // if (User::where('email', $request->email)->exists()) {
+        //     return response()->json(['message' => 'User already exists with this email.'], 409);
+        // }
+
+
+        $user = User::updateOrCreate(
+            ['email' => $request->email],
+            [
+                'first_name' => $request->first_name,
+                'last_name'  => $request->last_name,
+                'role_id'    => $invitation->role_id,
+                'password'   => Hash::make($request->password),
+                'status'     => 0,
+                'is_registered' => true,
+                'email_verified_at' => null,
+            ]
+        );
+
+
+        $invitation->update(['used' => true, 'registered_at' => now()]);
+
+
+        // ✅ Step 3: Create email verification token
         $verifyToken = Str::uuid();
         DB::table('email_verification_tokens')->insert([
             'user_id'    => $user->id,
@@ -81,35 +71,25 @@ class AuthController extends Controller
             'expires_at' => now()->addHours(24),
         ]);
 
-        // ✅ Step 6: Send email
+        // ✅ Step 4: Send verification email
         $verifyUrl = config('app.frontend_url', env('REACT_APP_URL')) . "verify-email?token={$verifyToken}";
 
         EmailHelper::send(
             $user->email,
             'Verify your email – Everyday CRM',
-            'emails.verify-email',
+            'emails.verify-email', // Create this Blade template
             [
                 'name' => $user->first_name,
                 'url' => $verifyUrl,
             ]
         );
 
-        DB::commit();
-
+        // ✅ Step 5: Respond with frontend redirect URL
         return response()->json([
             'message' => 'User registered. Please verify your email.',
-            'redirect' => '/check-email'
+            'redirect' => '/check-email' // used in frontend to navigate
         ]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'message' => 'Registration failed.',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
-
 
 
 
@@ -307,7 +287,7 @@ class AuthController extends Controller
         Cache::put('register_token_' . $token, $email, now()->addHours(24)); // Adjust as needed
 
         // Construct frontend link
-        $registerUrl = config('app.frontend_url', env('REACT_APP_URL', 'http://localhost:5173')) . "/register?token={$token}";
+        $registerUrl = config('app.frontend_url', env('REACT_APP_URL', 'http://localhost:5173')) . "register?token={$token}";
 
         return response()->json([
             'status' => true,
@@ -389,7 +369,7 @@ class AuthController extends Controller
             'email_verified_at' => now()
         ]);
 
-       // DB::table('email_verification_tokens')->where('token', $token)->delete();
+        // DB::table('email_verification_tokens')->where('token', $token)->delete();
 
         return response()->json(['message' => 'Email verified successfully']);
     }

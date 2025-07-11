@@ -7,6 +7,7 @@ import { logout,updateUser } from "../redux/slices/authSlice"; // existing
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
+import type { circIn } from "framer-motion";
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -16,26 +17,60 @@ const Profile = () => {
     first_name: "",
     last_name: "",
     email: "",
+    phone: "",
+    address: "",
     current_password: "",
     password: "",
     password_confirmation: "", // must match
+    city: "",
+    state: "",
+    postal_code: "",
   });
 
-  useEffect(() => {
-    if (token) {
-      getProfile(token)
-        .then((res) => {
-          console.log("Profile API Response:", res); // ✅ See exactly what you're getting
-          const { first_name, last_name, email } = res;
-          setForm((prev) => ({ ...prev, first_name, last_name, email }));
-        })
-        .catch((err) => toast.error(err.message));
-    }
-  }, [token]);
+      useEffect(() => {
+      if (token) {
+        getProfile(token)
+          .then((res) => {
+            console.log("Profile API Response:", res);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+            const {
+              first_name,
+              last_name,
+              email,
+              info = {}, // fallback to empty object
+            } = res;
+
+            const {
+              phone = "",
+              address = "",
+              city = "",
+              state = "",
+              postal_code = "",
+            } = info;
+
+            setForm((prev) => ({
+              ...prev,
+              first_name,
+              last_name,
+              email,
+              phone,
+              address,
+              city,
+              state,
+              postal_code,
+            }));
+          })
+          .catch((err) => toast.error(err.message));
+      }
+    }, [token]);
+
+
+        const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+      };
+
 
   const handleUpdate = async () => {
     try {
@@ -104,7 +139,7 @@ const Profile = () => {
           />
         </div>
 
-        <div className="mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <input
             type="email"
             name="email"
@@ -113,11 +148,6 @@ const Profile = () => {
             placeholder="Email"
             className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
-        </div>
-
-        <hr className="my-6" />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <input
             type="password"
             name="current_password"
@@ -126,6 +156,32 @@ const Profile = () => {
             placeholder="Current Password"
             className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
+        </div>
+
+        <hr className="my-6" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          
+          <input
+            type="tel"
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            placeholder="Phone Number"
+            className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <textarea
+            name="address"
+            value={form.address}
+            onChange={handleChange}
+            placeholder="Address"
+            className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 h-[44px] resize-none"
+          />
+
+
+
+
           <input
             type="password"
             name="password"
@@ -142,6 +198,39 @@ const Profile = () => {
             placeholder="Confirm Password"
             className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
+        </div>
+
+        <hr className="my-6" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          
+          <input
+            type="city"
+            name="city"
+            value={form.city}
+            onChange={handleChange}
+            placeholder="City"
+            className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <input
+            type="state"
+            name="state"
+            value={form.state}
+            onChange={handleChange}
+            placeholder="State"
+            className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <input
+            type="text"
+            name="postal_code"
+            value={form.postal_code}
+            onChange={handleChange}
+            placeholder="Postal Code"
+            className="border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+
         </div>
 
         <button

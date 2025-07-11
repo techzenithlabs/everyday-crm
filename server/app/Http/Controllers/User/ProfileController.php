@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Users\UserInfo;
 
 
 class ProfileController extends Controller
@@ -15,7 +16,11 @@ class ProfileController extends Controller
      */
     public function show(Request $request)
     {
-        return response()->json($request->user());
+        //return response()->json($request->user());
+
+        $user = $request->user()->load('info');
+
+        return response()->json($user);
     }
 
     /**
@@ -25,13 +30,20 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $validator = Validator::make($request->all(), [
-            'first_name'        => 'nullable|string|max:255',
-            'last_name'         => 'nullable|string|max:255',
+       $validator = Validator::make($request->all(), [
+            'first_name'        => 'required|string|max:255',
+            'last_name'         => 'required|string|max:255',
             'email'             => 'required|email|max:255|unique:users,email,' . $user->id,
-            'current_password'  => 'nullable|string',
+            'current_password'  => 'required|string',
+            'phone'             => 'nullable|string|regex:/^[0-9+\-\s\(\)]{7,20}$/',
+            'address'           => 'nullable|string|max:255',
             'password'          => 'nullable|string|min:6|confirmed',
+            
+            'city'              => 'nullable|string|max:100',
+            'state'             => 'nullable|string|max:100',
+            'postal_code'       => 'nullable|string|regex:/^\d{4,10}$/',
         ]);
+
 
         if ($validator->fails()) {
             return response()->json([
@@ -69,10 +81,26 @@ class ProfileController extends Controller
 
         $user->save();
 
+        $userInfo = $user->info;
+
+        if (!$userInfo) {
+            $userInfo = new UserInfo();
+            $userInfo->user_id = $user->id;
+        }
+
+        $userInfo->phone        = $data['phone'] ?? null;
+        $userInfo->address      = $data['address'] ?? null;
+        $userInfo->city         = $data['city'] ?? null;
+        $userInfo->state        = $data['state'] ?? null;
+        $userInfo->postal_code  = $data['postal_code'] ?? null;
+
+        $userInfo->save();
+
+
         return response()->json([
             'status' => true,
             'message' => 'Profile updated successfully',
-            'user' => $user
+            'user' => $user->load('info'),
         ]);
     }
 }

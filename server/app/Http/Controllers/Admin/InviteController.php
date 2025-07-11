@@ -30,8 +30,7 @@ class InviteController extends Controller
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'token' => $token,
-            'status' => 0, // 0 = pending, 1 = active
+            'role_id' => $request->role_id,
             'expires_at' => now()->addDays(2),
         ]);
 
@@ -46,7 +45,6 @@ class InviteController extends Controller
                 'register_url' => $registerUrl,
             ]
         );
-        
 
         if (!$sent) {
             return response()->json(['message' => 'Failed to send invitation email'], 500);
@@ -113,25 +111,22 @@ class InviteController extends Controller
             );
 
             // Step 3: Send email invitation
-            // EmailHelper::send(
-            //     $user->email,
-            //     'You’re invited to Everyday CRM!',
-            //     'emails.invite-user',
-            //     [
-            //         'name' => $user->first_name,
-            //         'register_url' => config('app.frontend_url') . '/register?token=' . $user->token,
-            //     ]
-            // );
+            EmailHelper::send(
+                $user->email,
+                'You’re invited to Everyday CRM!',
+                'emails.invite-user',
+                [
+                    'name' => $user->first_name,
+                    'register_url' => config('app.frontend_url') . 'register?token=' . $user->token,
+                ]
+            );
 
-            $html = view('emails.invite-user', [
-            'name' => $user->first_name,
-            'register_url' => config('app.frontend_url') . '/register?token=' . $user->token,
-            ])->render();
+            // $html = view('emails.invite-user', [
+            // 'name' => $user->first_name,
+            // 'register_url' => config('app.frontend_url') . '/register?token=' . $user->token,
+            // ])->render();
 
-            return response($html);
-        // ⬅️ Show email output in browser
-
-        die;
+            // return response($html);
 
             return response()->json([
                 'status' => true,
