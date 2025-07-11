@@ -110,7 +110,7 @@ class InviteController extends Controller
                 ['permissions' => $grouped]
             );
 
-            // Step 3: Send email invitation
+            // Step 3: Send email invitation 
             EmailHelper::send(
                 $user->email,
                 'You’re invited to Everyday CRM!',
