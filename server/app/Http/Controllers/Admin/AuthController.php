@@ -28,7 +28,9 @@ class AuthController extends Controller
             'password' => 'required|string|min:6|confirmed',
         ]);
 
-        $invitation = UserInvitation::where('token', $request->token)
+
+
+        $invitation = User::where('token', $request->token)
             ->where('used', false)
             ->where('expires_at', '>', now())
             ->first();
@@ -280,7 +282,7 @@ class AuthController extends Controller
         Cache::put('register_token_' . $token, $email, now()->addHours(24)); // Adjust as needed
 
         // Construct frontend link
-        $registerUrl = config('app.frontend_url', env('REACT_APP_URL', 'http://localhost:5173')) . "/register?token={$token}";
+        $registerUrl = config('app.frontend_url', env('REACT_APP_URL', 'http://localhost:5173')) . "register?token={$token}";
 
         return response()->json([
             'status' => true,
@@ -293,7 +295,7 @@ class AuthController extends Controller
 
     public function verifyRegisterToken($token)
     {
-        $invitation = UserInvitation::where('token', $token)
+        $invitation = User::where('token', $token)
             ->where('used', false)
             ->where('expires_at', '>', now())
             ->first();
