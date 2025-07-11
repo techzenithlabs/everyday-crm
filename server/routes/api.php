@@ -96,6 +96,7 @@ Route::middleware(['auth:sanctum'])->prefix('projects')->group(function () {
     // 📁 Project Routes
     Route::get('/', [ProjectController::class, 'index']);               // List all user projects
     Route::post('/', [ProjectController::class, 'store']);              // Create new project
+    Route::get('/{project}', [ProjectController::class, 'show']);   // Show a specific project
     Route::put('/{project}', [ProjectController::class, 'update']);     // Update a project
     Route::delete('/{project}', [ProjectController::class, 'destroy']); // Delete a project
 

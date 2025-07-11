@@ -130,7 +130,7 @@ const Sidebar = () => {
                 onClick={() => {
                   toggleMenu(id);
                   if (path) {
-                   navigate(path); // OR use navigate(path) with useNavigate()
+                    navigate(path); // OR use navigate(path) with useNavigate()
                   }
                 }}
                 className={`flex items-center justify-between gap-3 px-4 py-3 w-full rounded text-left transition duration-200 ${
@@ -163,7 +163,14 @@ const Sidebar = () => {
                     return (
                       <NavLink
                         key={child.id}
-                        to={child.path}
+                        to={
+                          child.path.includes(":id")
+                            ? child.path.replace(
+                                ":id",
+                                localStorage.getItem("currentProjectId") || "0"
+                              )
+                            : child.path
+                        }
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-4 py-2 w-full rounded text-left transition duration-200 ${
                             isActive || location.pathname === child.path
