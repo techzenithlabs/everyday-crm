@@ -230,7 +230,7 @@ const Profile = () => {
             className="border border-gray-300 px-4 py-2 rounded-lg"
           />
           <input
-            type="text"
+            type="number"
             name="postal_code"
             value={form.postal_code}
             onChange={handleChange}
