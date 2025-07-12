@@ -53,6 +53,7 @@ export const getProfile = async (token: string) => {
     });
     return response.data;
   } catch (error) {
+    console.log(error)
     const err = error as AxiosError<{ message: string }>;
     throw err.response?.data || { message: "Failed to fetch profile" };
   }
