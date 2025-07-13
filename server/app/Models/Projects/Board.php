@@ -23,7 +23,13 @@ class Board extends Model
 
     public function tasks()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(Task::class)->orderBy('sort_order');
     }
+
+    public function boardType()
+    {
+        return $this->belongsTo(BoardType::class);
+    }
+
 
 }

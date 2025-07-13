@@ -1,3 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Customize react-datepicker to match Tailwind look */
+.react-datepicker {
+  font-size: 0.875rem; /* text-sm */
+  border-radius: 0.5rem; /* rounded-lg */
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-lg */
+  padding: 0.5rem;
+}
+
+.react-datepicker__header {
+  background-color: #1d4ed8; /* blue-700 */
+  color: white;
+  border-bottom: none;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #2563eb !important; /* blue-600 */
+  color: white;
+}
+
+.react-datepicker__day:hover {
+  background-color: #dbeafe !important; /* blue-100 */
+}
+
+.react-datepicker__time-container .react-datepicker__time {
+  background-color: white;
+  border-left: 1px solid #e5e7eb; /* border-gray-200 */
+}
+

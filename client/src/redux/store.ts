@@ -1,35 +1,37 @@
-  import { configureStore } from '@reduxjs/toolkit';
-  import authReducer from './slices/authSlice';
-  import { persistReducer, persistStore } from 'redux-persist';
-  import storage from 'redux-persist/lib/storage'; // defaults to localStorage
-  import { combineReducers } from 'redux';
-  import loadingReducer from './slices/loadingSlice'; 
-  import projectReducer from './slices/projectSlice'; // Assuming you have a project slice
-  
+import { configureStore} from '@reduxjs/toolkit';
+import { persistReducer, persistStore } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import { combineReducers } from 'redux';
 
+import authReducer from './slices/authSlice';
+import loadingReducer from './slices/loadingSlice';
+import projectReducer from './slices/projectSlice';
+import workspaceReducer from './slices/workspaceSlice'; // ✅
 
-  const rootReducer = combineReducers({
-    auth: authReducer,
-    loading: loadingReducer,
-    projects: projectReducer,
-  });
+const rootReducer = combineReducers({
+  auth: authReducer,
+  loading: loadingReducer,
+  projects: projectReducer,
+  workspace: workspaceReducer, // ✅ included here
+});
 
-  const persistConfig = {
-    key: 'root',
-    storage,
-  };
+const persistConfig = {
+  key: 'root',
+  storage,
+};
 
-  const persistedReducer = persistReducer(persistConfig, rootReducer);
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-  export const store = configureStore({
-    reducer: persistedReducer,
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: false,
-      }),
-  });
+export const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+});
 
-  export const persistor = persistStore(store);
+export const persistor = persistStore(store);
 
-export type RootState = ReturnType<typeof store.getState>;
+// ✅ FIXED RootState using rootReducer (not store.getState)
+export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;

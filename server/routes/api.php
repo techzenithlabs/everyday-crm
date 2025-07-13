@@ -10,7 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\InviteController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\MenuController as AdminMenuController;
-
+use App\Http\Controllers\Workspaces\WorkspaceController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\BoardController;
 use App\Http\Controllers\Projects\TaskController;
@@ -87,6 +87,16 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 });
 
 
+/// ─────────────────────────────
+//// 🏢 WORKSPACE MANAGEMENT
+/// ─────────────────────────────
+Route::middleware(['auth:sanctum'])->prefix('workspaces')->group(function () {
+    Route::get('/', [WorkspaceController::class, 'index']);  // List user workspaces
+    Route::post('/', [WorkspaceController::class, 'store']); // Create new workspace (limit 1 per user)
+    Route::put('/{workspace}', [WorkspaceController::class, 'update']); // Rename workspace
+
+});
+
 
 /// ─────────────────────────────
 /// 📂 PROJECT MANAGEMENT (Kanban)
@@ -110,7 +120,7 @@ Route::middleware(['auth:sanctum'])->prefix('projects')->group(function () {
     // ✅ Task Routes (inside a board)
     Route::get('/boards/{board}/tasks', [TaskController::class, 'index']);      // List tasks
     Route::post('/boards/{board}/tasks', [TaskController::class, 'store']);     // Create task
-    Route::put('/tasks/{task}', [TaskController::class, 'update']);             // Update task
+    Route::put('/tasks/{id}', [TaskController::class, 'update']);             // Update task
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);         // Delete task
     Route::post('/tasks/reorder', [TaskController::class, 'reorder']);          // Reorder tasks (optional)
 });

@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getProjects } from "@/services/projectService";
 import type { Project } from "@/types/project";
 
-
 interface ProjectState {
   projects: Project[];
   loading: boolean;
@@ -16,8 +15,9 @@ const initialState: ProjectState = {
 };
 export const fetchAllProjects = createAsyncThunk(
   "projects/fetchAll",
-  async () => {
-    const data = await getProjects();
+  async (workspaceId?: string) => {
+    if (!workspaceId) throw new Error("Workspace ID is required");
+    const data = await getProjects({ workspace_id: workspaceId }); // ✅ fixed
     return data;
   }
 );

@@ -11,7 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::dropIfExists('user_permissions');
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->dateTime('due_date')->nullable()->change();
+        });
     }
 
     /**
@@ -19,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_permissions');
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->date('due_date')->nullable()->change();
+        });
     }
 };

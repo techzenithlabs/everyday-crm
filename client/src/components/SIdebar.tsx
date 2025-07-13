@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import type { RootState } from "../redux/store";
 import api from "../api";
+import type { MenuItem } from "@/types/menu";
 
 import {
   Home,
@@ -12,9 +12,11 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
+  type LucideIcon,
 } from "lucide-react";
 
-const iconMap: Record<string, any> = {
+// ✅ Typed icon map using LucideIcon
+const iconMap: Record<string, LucideIcon> = {
   home: Home,
   users: Users,
   settings: Settings,
@@ -28,7 +30,7 @@ const Sidebar = () => {
   const roleId = user?.role_id ?? 0;
 
   const [rehydrated, setRehydrated] = useState(false);
-  const [menus, setMenus] = useState<any[]>([]);
+  const [menus, setMenus] = useState<MenuItem[]>([]);
   const [openMenus, setOpenMenus] = useState<number[]>([]);
 
   // ✅ Wait for redux-persist hydration
@@ -56,24 +58,24 @@ const Sidebar = () => {
       try {
         const res = await api.get("/admin/sidebar-menus");
         if (res.data.status) {
-          const flatMenus = res.data.menus;
+          const flatMenus: MenuItem[] = res.data.menus;
 
           // 👇 Group into parent -> children structure
-          const grouped: any = {};
-          flatMenus.forEach((menu: any) => {
+          const grouped: Record<number, MenuItem> = {};
+          flatMenus.forEach((menu) => {
             if (!menu.parent_id) {
               grouped[menu.id] = { ...menu, children: [] };
             }
           });
-          flatMenus.forEach((menu: any) => {
+          flatMenus.forEach((menu) => {
             if (menu.parent_id && grouped[menu.parent_id]) {
               grouped[menu.parent_id].children.push(menu);
             }
           });
 
           // Convert to array & sort
-          const sorted = Object.values(grouped).sort(
-            (a: any, b: any) => a.sort_order - b.sort_order
+          const sorted: MenuItem[] = Object.values(grouped).sort(
+            (a, b) => a.sort_order - b.sort_order
           );
 
           setMenus(sorted);
@@ -97,12 +99,12 @@ const Sidebar = () => {
       <h2 className="text-2xl font-bold mb-6 text-teal-500">Everyday Patio</h2>
 
       <nav className="flex flex-col space-y-1">
-        {menus.map((menu) => {
+        {menus.map((menu: MenuItem) => {
           const { id, path, name, icon, children, roleAccess = [] } = menu;
           const Icon = iconMap[icon?.toLowerCase()] ?? FileText;
           const hasAccess = roleId === 1 || roleAccess.includes(roleId);
-
           if (!hasAccess) return null;
+
           const isOpen = openMenus.includes(id);
 
           if (!children.length) {
@@ -129,9 +131,7 @@ const Sidebar = () => {
               <button
                 onClick={() => {
                   toggleMenu(id);
-                  if (path) {
-                    navigate(path); // OR use navigate(path) with useNavigate()
-                  }
+                  if (path) navigate(path);
                 }}
                 className={`flex items-center justify-between gap-3 px-4 py-3 w-full rounded text-left transition duration-200 ${
                   location.pathname === path
@@ -143,16 +143,12 @@ const Sidebar = () => {
                   <Icon className="h-5 w-5" />
                   <span>{name}</span>
                 </div>
-                {isOpen ? (
-                  <ChevronDown size={16} />
-                ) : (
-                  <ChevronRight size={16} />
-                )}
+                {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
 
               {isOpen && (
                 <div className="ml-6 mt-1 flex flex-col space-y-1">
-                  {children.map((child: any) => {
+                  {children.map((child: MenuItem) => {
                     const childHasAccess =
                       roleId === 1 || child.roleAccess?.includes(roleId);
                     if (!childHasAccess) return null;

@@ -29,7 +29,8 @@
     },
 
     /* ✅ Add this to support process.env */
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node"],
+    "typeRoots": ["./node_modules/@types", "./types"] 
   },
-  "include": ["src"]
+  "include": ["src","types"]
 }

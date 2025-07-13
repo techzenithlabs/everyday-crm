@@ -1,9 +1,8 @@
 import api from "../api";
 
-
 // ✅ Get all projects
-export const getProjects = async () => {
-  const res = await api.get("/projects");
+export const getProjects = async (params: { workspace_id: string }) => {
+  const res = await api.get("/projects", { params });
   if (!res.data.status) throw new Error("Failed to fetch projects");
   return res.data.data;
 };
@@ -17,6 +16,7 @@ export const getProjectById = async (id: number) => {
 
 // ✅ Create new project
 export const createProject = async (payload: {
+  workspace_id: string;
   title: string;
   description?: string;
 }) => {
@@ -28,7 +28,7 @@ export const createProject = async (payload: {
 // ✅ Update project
 export const updateProject = async (
   id: number,
-  payload: { name: string; description?: string }
+  payload: { title: string; description?: string }
 ) => {
   const res = await api.put(`/projects/${id}`, payload);
   if (!res.data.status) throw new Error("Failed to update project");

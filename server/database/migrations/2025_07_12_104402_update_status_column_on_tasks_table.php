@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_permission', function (Blueprint $table) {
-            Schema::dropIfExists('user_permission');
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->enum('status', ['pending', 'in_progress', 'completed'])->default('pending')->change();
         });
     }
 
@@ -21,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_permission');
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->string('status')->change(); // Or revert to previous type if known
+        });
     }
 };

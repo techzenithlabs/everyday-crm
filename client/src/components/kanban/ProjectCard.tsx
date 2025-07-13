@@ -1,23 +1,16 @@
-import { FC } from "react";
 import { useNavigate } from "react-router-dom";
+import type { Project } from "@/types/project";
 
-type Props = {
-  project: {
-    id: number;
-    name: string;
-    description?: string;
-  };
-};
-
-const ProjectCard: FC<Props> = ({ project }) => {
+const ProjectCard = ({ project }: { project: Project }) => {
   const navigate = useNavigate();
+
   return (
     <div
-      className="border p-4 rounded shadow hover:shadow-md cursor-pointer"
-      onClick={() => navigate(`/projects/${project.id}`)}
+      className="bg-white p-4 rounded shadow cursor-pointer"
+      onClick={() => navigate(`/projects/${project.id}`)} // ✅ navigate to detail
     >
-      <h3 className="text-lg font-semibold">{project.name}</h3>
-      <p className="text-sm text-gray-500">{project.description}</p>
+      <h3 className="text-lg font-semibold">{project.title}</h3>
+      <p className="text-gray-600">{project.description}</p>
     </div>
   );
 };

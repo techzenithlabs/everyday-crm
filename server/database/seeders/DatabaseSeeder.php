@@ -22,8 +22,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
         // RolesTableSeeder::class,      // ✅ Seed roles first
         // AdminUserSeeder::class,
-         MenuAndPermissionsSeeder::class,
-         RoleGroupsAndRolesSeeder::class,
+        //  MenuAndPermissionsSeeder::class,
+        //  RoleGroupsAndRolesSeeder::class,
+        BoardTypeSeeder::class,
 
     ]);
     }

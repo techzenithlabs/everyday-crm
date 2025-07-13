@@ -2,7 +2,7 @@ import axios from "axios";
 
   const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
-    withCredentials: true,
+    withCredentials: false,
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
@@ -20,7 +20,7 @@ import axios from "axios";
       if (auth?.token) {     
         config.headers.Authorization = `Bearer ${auth.token}`;
       }
-    } catch (e) {
+    } catch {
       console.warn("Failed to parse auth token from persist:root");
     }
   }

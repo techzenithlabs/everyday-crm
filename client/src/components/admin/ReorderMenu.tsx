@@ -6,6 +6,7 @@ import {
   useSensors,
   DragOverlay,
 } from "@dnd-kit/core";
+import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core/dist/types";
 import {
   SortableContext,
   useSortable,
@@ -13,11 +14,22 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { getSidebarMenus, updateMenuOrder } from "../../services/adminService";
 
-const DraggableItem = ({ id, name, isOver }: any) => {
+interface MenuItem {
+  id: number;
+  name: string;
+}
+
+interface DraggableItemProps {
+  id: number | string;
+  name: string;
+  isOver: boolean;
+}
+
+const DraggableItem = ({ id, name, isOver }: DraggableItemProps) => {
   const {
     attributes,
     listeners,
@@ -52,9 +64,12 @@ const DraggableItem = ({ id, name, isOver }: any) => {
 };
 
 const ReorderMenu = () => {
-  const [menus, setMenus] = useState<any[]>([]);
-  const [originalOrder, setOriginalOrder] = useState<any[]>([]);
+  const [menus, setMenus] = useState<MenuItem[]>([]);
+  const [originalOrder, setOriginalOrder] = useState<MenuItem[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [isDirty, setIsDirty] = useState<boolean>(false);
+  const previousOrderRef = useRef<MenuItem[]>([]);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
@@ -63,6 +78,7 @@ const ReorderMenu = () => {
         const data = await getSidebarMenus();
         setMenus(data);
         setOriginalOrder(data);
+        previousOrderRef.current = data;
       } catch {
         toast.error("Failed to load menus");
       }
@@ -70,29 +86,39 @@ const ReorderMenu = () => {
     fetchMenus();
   }, []);
 
-  const handleDragStart = (event: any) => {
-    setActiveId(event.active.id);
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as number);
   };
 
-  const handleDragEnd = async (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
 
-    if (active.id !== over?.id) {
-      const oldIndex = menus.findIndex((item) => item.id === active.id);
-      const newIndex = menus.findIndex((item) => item.id === over.id);
-      const reordered = arrayMove(menus, oldIndex, newIndex);
+    if (!over || active.id === over.id) return;
 
-      setMenus(reordered);
+    const oldIndex = menus.findIndex((item) => item.id === active.id);
+    const newIndex = menus.findIndex((item) => item.id === over.id);
+
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const reordered = arrayMove(menus, oldIndex, newIndex);
+    setMenus(reordered);
+    setIsDirty(true);
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    debounceTimer.current = setTimeout(async () => {
       try {
         await updateMenuOrder(reordered.map((item) => item.id));
         toast.success(
           `Moved '${menus[oldIndex].name}' before '${menus[newIndex].name}'`
         );
+        setIsDirty(false);
+        previousOrderRef.current = reordered;
       } catch {
         toast.error("Failed to update menu order");
       }
-    }
+    }, 1000);
   };
 
   const resetOrder = async () => {
@@ -101,10 +127,24 @@ const ReorderMenu = () => {
       setMenus(originalOrder);
       await updateMenuOrder(ids);
       toast.success("Reset to default order");
+      setIsDirty(false);
+      previousOrderRef.current = originalOrder;
     } catch {
       toast.error("Reset failed");
     }
   };
+
+  const undoLast = useCallback(async () => {
+    try {
+      const ids = previousOrderRef.current.map((item) => item.id);
+      setMenus(previousOrderRef.current);
+      await updateMenuOrder(ids);
+      toast.success("Undo successful");
+      setIsDirty(false);
+    } catch {
+      toast.error("Undo failed");
+    }
+  }, []);
 
   const activeItem = menus.find((item) => item.id === activeId);
 
@@ -112,13 +152,27 @@ const ReorderMenu = () => {
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Drag & Drop Menu Ordering</h2>
-        <button
-          onClick={resetOrder}
-          className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded"
-        >
-          Reset
-        </button>
+        <div className="space-x-2">
+          <button
+            onClick={resetOrder}
+            className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded"
+          >
+            Reset
+          </button>
+          <button
+            onClick={undoLast}
+            className="bg-blue-200 hover:bg-blue-300 text-sm px-3 py-1 rounded"
+          >
+            Undo
+          </button>
+        </div>
       </div>
+
+      {isDirty && (
+        <div className="text-sm text-yellow-700 mb-2">
+          Changes pending save...
+        </div>
+      )}
 
       <DndContext
         sensors={sensors}

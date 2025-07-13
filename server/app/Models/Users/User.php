@@ -19,7 +19,11 @@ use App\Models\Roles\Permission;
 use App\Models\Users\UserPermission;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Users\UserInfo;
+use App\Models\Workspaces\Workspace;
 
+/**
+ * @method \Illuminate\Database\Eloquent\Relations\BelongsToMany workspaces()
+ */
 
 class User extends Authenticatable
 {
@@ -48,7 +52,7 @@ class User extends Authenticatable
         'expires_at',
     ];
 
-     protected $casts = [
+    protected $casts = [
         'permissions' => 'array',
     ];
 
@@ -73,6 +77,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function workspaces()
+    {
+        return $this->belongsToMany(Workspace::class, 'workspace_user')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     public function role()

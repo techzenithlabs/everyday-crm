@@ -5,68 +5,127 @@ namespace App\Http\Controllers\Projects;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Projects\Task;
-use Illuminate\Support\Facades\Log;
-use Exception;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
-    public function store(Request $request)
+    // ✅ List tasks for a board
+    public function index($boardId)
     {
         try {
-            $validated = $request->validate([
-                'board_id' => 'required|exists:boards,id',
-                'title' => 'required|string|max:255',
+            $tasks = Task::where('board_id', $boardId)->orderBy('sort_order')->get();
+
+            return response()->json([
+                'status' => true,
+                'data' => $tasks
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to load tasks',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ✅ Create task
+    public function store(Request $request, $boardId)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'title' => 'required|string|max:255',
+                // Don't validate board_id from request
+                'description' => 'nullable|string',
+                'due_date' => 'nullable|date',
+                'priority' => 'required|in:Low,Medium,High',
+                'labels' => 'nullable|array',
+                'labels.*' => 'string',
+                'assigned_to' => 'nullable|exists:users,id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
 
             $task = Task::create([
-                'board_id' => $validated['board_id'],
-                'title' => $validated['title'],
-                'sort_order' => Task::where('board_id', $validated['board_id'])->max('sort_order') + 1,
+                'board_id' => $boardId, // ✅ taken from route param, not request
+                'title' => $request->title,
+                'description' => $request->description,
+                'due_date' => $request->due_date,
+                'priority' => $request->priority,
+                'labels' => $request->labels ?? [],
+                'assigned_to' => $request->assigned_to,
+                'status' => 'pending',
+                'sort_order' => 0,
+                'created_by' => auth()->id(),
             ]);
 
             return response()->json([
                 'status' => true,
-                'message' => 'Task created successfully.',
-                'data' => $task,
+                'data' => $task
             ]);
-        } catch (Exception $e) {
-            Log::error('Task creation failed: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Task creation failed',
+                'error' => $th->getMessage(),
+            ], 500);
         }
     }
 
-    public function update(Request $request, Task $task)
-    {
-        try {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-            ]);
 
-            $task->update($validated);
+    // ✅ Update task
+    public function update(Request $request, $taskId)
+    {
+
+        try {
+            $task = Task::findOrFail($taskId);
+
+            $task->update($request->only([
+                'title',
+                'description',
+                'due_date',
+                'priority',
+                'labels',
+                'assigned_to',
+                'status'
+            ]));
 
             return response()->json([
                 'status' => true,
-                'message' => 'Task updated successfully.',
-                'data' => $task,
+                'message' => 'Task updated successfully',
+                'data' => $task
             ]);
-        } catch (Exception $e) {
-            Log::error('Task update failed: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to update task',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
-    public function destroy(Task $task)
+    // ✅ Delete task
+    public function destroy($taskId)
     {
         try {
+            $task = Task::findOrFail($taskId);
             $task->delete();
 
             return response()->json([
                 'status' => true,
-                'message' => 'Task deleted successfully.',
+                'message' => 'Task deleted successfully'
             ]);
-        } catch (Exception $e) {
-            Log::error('Task deletion failed: ' . $e->getMessage());
-            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to delete task',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

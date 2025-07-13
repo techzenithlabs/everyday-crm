@@ -5,19 +5,27 @@ namespace App\Http\Controllers\Projects;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Projects\Project;
-use Illuminate\Support\Facades\Log;
 use App\Models\Projects\Board;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
+use App\Models\Projects\BoardType;
 use Exception;
 
 class ProjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $projects = Project::with('boards.tasks')
-                ->where('created_by', auth()->id())
-                ->get();
+            $query = Project::with(['workspace', 'boards.tasks'])
+                ->where('created_by', Auth::id());
+
+            // ✅ Optional filter by workspace
+            if ($request->has('workspace_id')) {
+                $query->where('workspace_id', $request->workspace_id);
+            }
+
+            $projects = $query->get();
 
             return response()->json([
                 'status' => true,
@@ -25,18 +33,18 @@ class ProjectController extends Controller
                 'data' => $projects,
             ]);
         } catch (Exception $e) {
-            Log::error('Project fetch failed: ' . $e->getMessage());
+            \Log::error('Project fetch failed: ' . $e->getMessage());
 
             return response()->json([
                 'status' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
 
     public function show($id)
     {
-        $project = Project::find($id);
+        $project = Project::with('boards.tasks', 'boards.boardType')->find($id);
 
         if (!$project) {
             return response()->json([
@@ -51,29 +59,33 @@ class ProjectController extends Controller
         ]);
     }
 
-
     public function store(Request $request)
     {
         try {
             $validated = $request->validate([
+                'workspace_id' => 'required|exists:workspaces,id',
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
             ]);
 
             $project = Project::create([
+                'workspace_id' => $validated['workspace_id'],
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
-                'created_by' => Auth::id(), // Assuming the user is authenticated
+                'created_by' => Auth::id(),
+                'status' => Project::STATUS_ACTIVE,
             ]);
 
-            // ✅ Auto-create default boards (Jobs Board, Permits Board)
-            $defaultBoards = ['Jobs Board', 'Permits Board'];
-            foreach ($defaultBoards as $index => $title) {
+            // Auto-create default boards
+            //$defaultBoards = Config::get('boards.default_board_types');
+            $defaultBoardTypes = BoardType::orderBy('sort_order')->get();
+            foreach ($defaultBoardTypes as $type) {
                 Board::create([
-                    'project_id' => $project->id,
-                    'title' => $title,
-                    'sort_order' => $index + 1,
-                    'created_by' => Auth::id(), // Optional, if your Board model tracks this
+                    'project_id'     => $project->id,
+                    'title'           => $type->name,
+                    'slug'           => $type->slug,
+                    'sort_order'     => $type->sort_order,
+                    'board_type_id'  => $type->id, // if you added this column
                 ]);
             }
 
@@ -95,11 +107,12 @@ class ProjectController extends Controller
     public function update(Request $request, Project $project)
     {
         try {
-            // Optionally add policies here: $this->authorize('update', $project);
+            // Optional: Authorize that user owns the project
 
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
+                // ❌ No workspace_id here — don’t allow changing workspace from update
             ]);
 
             $project->update($validated);
@@ -122,7 +135,7 @@ class ProjectController extends Controller
     public function destroy(Project $project)
     {
         try {
-            // Optionally add policies here: $this->authorize('delete', $project);
+            // Optional: Authorize that user owns the project
 
             $project->delete();
 

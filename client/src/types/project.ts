@@ -1,7 +1,9 @@
+// File: types/project.ts
+import type { Board } from "./board";
+
 export interface Project {
   id: number;
-  name: string;
+  title: string;
   description?: string;
-  created_at: string;
-  updated_at: string;
+  boards: Board[];
 }
