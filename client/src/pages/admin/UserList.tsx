@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getInvitedUsers } from "../../services/adminService";
-//import { formatHumanDate } from "../../utils/dateHelpers";
 import ReactPaginate from "react-paginate";
+import { toast } from "react-toastify";
 import EditUserModal from "../../components/modals/EditUserModal";
 import ManageAccessModal from "../../components/modals/ManageAccessModal";
-import { getAllPermissions } from "../../services/adminService";
+import { getInvitedUsers, getAllPermissions } from "../../services/adminService";
 import { updateUserPermissions } from "@/services/userPermissionService";
-import { toast } from "react-toastify";
-import { showConfirm,showSuccess,showError } from "@/utils/ConfirmDialogHelpers";
+import { showConfirm } from "@/utils/ConfirmDialogHelpers";
 
 const UserList = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -21,7 +19,7 @@ const UserList = () => {
   const [loading, setLoading] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [accessModalOpen, setAccessModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [allPermissions, setAllPermissions] = useState([]);
 
   const fetchUsers = async () => {
@@ -45,13 +43,12 @@ const UserList = () => {
 
   const fetchPermissions = async () => {
     try {
-      const permissions = await getAllPermissions(); // ✅ This returns grouped modules with children
-      setAllPermissions(permissions); // Set into state
+      const permissions = await getAllPermissions();
+      setAllPermissions(permissions);
     } catch (err) {
       console.error("Failed to fetch permissions", err);
     }
   };
-  
 
   useEffect(() => {
     fetchUsers();
@@ -75,59 +72,53 @@ const UserList = () => {
   const getRegistrationStatus = (user: any) => {
     if (user.used) {
       return (
-        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-          Registered
-        </span>
+        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Registered</span>
       );
     } else if (new Date(user.expires_at) < new Date()) {
       return (
-        <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
-          Expired
-        </span>
+        <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Expired</span>
       );
     } else {
       return (
-        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
-          Pending
-        </span>
+        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Pending</span>
       );
     }
   };
 
   const getActiveStatus = (user: any) => {
-    return user.status === "inactive" ? (
-      <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-        Inactive
-      </span>
+    return user.status === 0 ? (
+      <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">Inactive</span>
     ) : (
-      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-        Active
-      </span>
+      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Active</span>
     );
   };
 
   const handleSavePermissions = async (updatedPermissions: Record<number, number[]>) => {
-  try {
-    if (!selectedUser?.id) return;
-     const confirmed = await showConfirm(
-      "Confirm Update",
-      "Are you sure you want to update this user's permissions?",
-      "Yes, Update"
+    try {
+      if (!selectedUser?.id) return;
+      const confirmed = await showConfirm(
+        "Confirm Update",
+        "Are you sure you want to update this user's permissions?",
+        "Yes, Update"
+      );
+      if (!confirmed) return;
+
+      await updateUserPermissions(selectedUser.id, updatedPermissions);
+      toast.success("Permissions updated successfully");
+      setAccessModalOpen(false);
+      fetchUsers();
+    } catch (error) {
+      toast.error("❌ Failed to update permissions");
+    }
+  };
+
+  const handleUserUpdate = (updatedUser: any) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
     );
-    if (!confirmed) return;
-
-    await updateUserPermissions(selectedUser.id, updatedPermissions);
-
-    toast.success("Permissions updated successfully"); 
-
-    setAccessModalOpen(false); // Close modal
-    fetchUsers();              // Refresh list
-  } catch (error) {
-    toast.error("❌ Failed to update permissions");;
-  }
-};
-
-  
+    setSelectedUser(updatedUser);
+    setEditModalOpen(false);
+  };
 
   return (
     <div className="px-6 py-8">
@@ -181,15 +172,11 @@ const UserList = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={9} className="text-center py-6">
-                  Loading...
-                </td>
+                <td colSpan={9} className="text-center py-6">Loading...</td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-6">
-                  No users found
-                </td>
+                <td colSpan={9} className="text-center py-6">No users found</td>
               </tr>
             ) : (
               users.map((user: any) => (
@@ -200,9 +187,7 @@ const UserList = () => {
                   <td className="px-4 py-3">{user.email}</td>
                   <td className="px-4 py-3">{user.address || "N/A"}</td>
                   <td className="px-4 py-3">{getRegistrationStatus(user)}</td>
-                  <td className="px-4 py-3 font-semibold">
-                    {user.permission_count || 0}
-                  </td>
+                  <td className="px-4 py-3 font-semibold">{user.permission_count || 0}</td>
                   <td className="px-4 py-3">{getActiveStatus(user)}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
@@ -276,10 +261,7 @@ const UserList = () => {
           isOpen={true}
           user={selectedUser}
           onClose={() => setEditModalOpen(false)}
-          onSave={() => {
-            setEditModalOpen(false);
-            fetchUsers();
-          }}
+          onSave={handleUserUpdate} // ✅ Handles user update correctly
         />
       )}
 

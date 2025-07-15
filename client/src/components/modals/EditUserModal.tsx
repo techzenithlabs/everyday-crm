@@ -1,11 +1,12 @@
-// EditUserModal.tsx
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useEffect, useState } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { toast } from 'react-toastify';
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment, useEffect, useState } from "react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { toast } from "react-toastify";
+import { updateUserById } from "@/services/auth";
 
 /* ─── Types ─────────────────────────────────────────────── */
 export type UserFields = {
+  id?: number;
   first_name: string;
   last_name: string;
   email: string;
@@ -14,12 +15,12 @@ export type UserFields = {
   city: string;
   state: string;
   postal_code: string;
-  status: 'active' | 'inactive';
+  status: 0 | 1;
 };
 
 type EditUserModalProps = {
   isOpen: boolean;
-  user: Partial<UserFields> | null;
+  user: any; // since user.info may be nested
   onClose: () => void;
   onSave: (updated: UserFields) => void;
 };
@@ -31,41 +32,47 @@ export default function EditUserModal({
   onClose,
   onSave,
 }: EditUserModalProps) {
-  /* Initial state */
   const [formData, setFormData] = useState<UserFields>({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    postal_code: '',
-    status: 'active',
+    id: 0,
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    postal_code: "",
+    status: 1,
   });
 
-  /* Populate when `user` changes */
   useEffect(() => {
     if (user) {
-      setFormData((prev) => ({
-        ...prev,
-        ...user, // merges any provided fields
-      }));
+      const flatUser: UserFields = {
+        id: user.id,
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        email: user.email || "",
+        status: user.status ?? 1,
+        phone: user.info?.phone || "",
+        address: user.info?.address || "",
+        city: user.info?.city || "",
+        state: user.info?.state || "",
+        postal_code: user.info?.postal_code || "",
+      };
+
+      setFormData(flatUser);
     }
   }, [user]);
 
-  /* Generic change handler */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const newValue = name === "status" ? parseInt(value) : value;
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
   };
 
-  /* Save handler with validation */
-  const handleSave = () => {
-    console.log('clicked');
-
+  const handleSave = async () => {
     const cleaned: UserFields = {
       ...formData,
       first_name: formData.first_name.trim(),
@@ -78,30 +85,34 @@ export default function EditUserModal({
       address: formData.address.trim(),
     };
 
-    // basic validation
-    if (!cleaned.first_name || !cleaned.last_name) {
-      toast.error('First & last name are required');
-      return;
-    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleaned.email)) {
-      toast.error('Enter a valid email address');
-      return;
-    }
-    if (cleaned.phone && cleaned.phone.length < 7) {
-      toast.error('Phone number is too short');
-      return;
-    }
 
-    // pass to parent; parent should close modal when save succeeds
-    onSave(cleaned);
+    if (!cleaned.first_name) return toast.error("First name is required");
+    if (!cleaned.last_name) return toast.error("Last name is required");
+    if (!cleaned.email) return toast.error("Email is required");
+    if (!emailRegex.test(cleaned.email))
+      return toast.error("Invalid email format");
+    if (!cleaned.phone) return toast.error("Phone is required");
+    if (cleaned.phone.length < 7)
+      return toast.error("Phone must be at least 7 digits");
+    if (!cleaned.city) return toast.error("City is required");
+    if (!cleaned.state) return toast.error("State is required");
+    if (!cleaned.postal_code) return toast.error("Postal Code is required");
+    if (!cleaned.address) return toast.error("Address is required");
+
+    try {
+      await updateUserById(cleaned?.id!, cleaned);
+      toast.success("User updated successfully");
+      onSave(cleaned);
+      onClose();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to update user");
+    }
   };
 
-  /* ─── Render ──────────────────────────────────────────── */
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
-        {/* Backdrop */}
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -126,27 +137,32 @@ export default function EditUserModal({
               leaveTo="opacity-0 translate-y-4 sm:scale-95"
             >
               <Dialog.Panel className="w-full max-w-3xl rounded-2xl bg-white px-6 py-6 text-left shadow-xl">
-                {/* Header */}
                 <div className="flex items-center justify-between border-b pb-4 mb-6">
                   <Dialog.Title className="text-xl font-semibold">
                     Edit Team Member
                   </Dialog.Title>
-                  <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                  <button
+                    onClick={onClose}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
                     <XMarkIcon className="h-6 w-6" />
                   </button>
                 </div>
 
-                {/* Inputs in two‑column grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { label: 'First Name', name: 'first_name' },
-                    { label: 'Last Name', name: 'last_name' },
-                    { label: 'Email', name: 'email' },
-                    { label: 'Phone', name: 'phone' },
-                    { label: 'City', name: 'city' },
-                    { label: 'State', name: 'state' },
-                    { label: 'Postal Code', name: 'postal_code', type: 'number' },
-                  ].map(({ label, name, type = 'text' }) => (
+                  {[ 
+                    { label: "First Name", name: "first_name" },
+                    { label: "Last Name", name: "last_name" },
+                    { label: "Email", name: "email" },
+                    { label: "Phone", name: "phone" },
+                    { label: "City", name: "city" },
+                    { label: "State", name: "state" },
+                    {
+                      label: "Postal Code",
+                      name: "postal_code",
+                      type: "text",
+                    },
+                  ].map(({ label, name, type = "text" }) => (
                     <div key={name}>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         {label}
@@ -161,7 +177,6 @@ export default function EditUserModal({
                     </div>
                   ))}
 
-                  {/* Address (span 2) */}
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Address
@@ -174,7 +189,6 @@ export default function EditUserModal({
                     />
                   </div>
 
-                  {/* Status dropdown (span 2) */}
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Status
@@ -185,13 +199,12 @@ export default function EditUserModal({
                       onChange={handleChange}
                       className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
+                      <option value={1}>Active</option>
+                      <option value={0}>Inactive</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Footer buttons */}
                 <div className="mt-6 flex justify-end gap-3">
                   <button
                     type="button"

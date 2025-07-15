@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Menus\Menu;
 use App\Models\Users\User;
+Use App\Models\Users\UserInfo;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -83,6 +85,63 @@ class UserController extends Controller
                 'status' => false,
                 'message' => 'Error fetching users',
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'first_name'   => 'required|string|max:100',
+                'last_name'    => 'required|string|max:100',
+                'email'        => 'required|email|unique:users,email,' . $id,
+                'status'       => 'required|in:0,1',
+                'phone'        => 'nullable|string|max:20',
+                'address'      => 'nullable|string|max:255',
+                'city'         => 'nullable|string|max:100',
+                'state'        => 'nullable|string|max:100',
+                'postal_code'  => 'nullable|string|max:20',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $user = User::findOrFail($id);
+
+            // Update users table
+            $user->update([
+                'first_name' => $request->first_name,
+                'last_name'  => $request->last_name,
+                'email'      => $request->email,
+                'status'     => $request->status,
+            ]);
+
+            // Update or create user_infos table
+            UserInfo::updateOrCreate(
+                ['user_id' => $id],
+                [
+                    'phone'        => $request->phone,
+                    'address'      => $request->address,
+                    'city'         => $request->city,
+                    'state'        => $request->state,
+                    'postal_code'  => $request->postal_code,
+                ]
+            );
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User updated successfully',
+                'user' => $user->load('info') // if you have relation defined
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Server Error: ' . $e->getMessage(),
             ], 500);
         }
     }

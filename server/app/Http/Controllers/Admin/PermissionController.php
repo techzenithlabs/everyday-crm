@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
+use App\Models\Users\User;
 use App\Models\Users\UserPermission;
 use App\Models\Menus\Menu;
 
@@ -89,14 +90,17 @@ class PermissionController extends Controller
     // Save/update permissions of a user
     public function updateUserPermissions(Request $request, $id)
     {
+        //header("Access-Control-Allow-Origin: *");
+
         try {
             $validated = $request->validate([
                 'permissions' => 'required|array',
             ]);
 
+            $email=User::select('email')->findorFail($id); // Ensure user exists
             UserPermission::updateOrCreate(
                 ['user_id' => $id],
-                ['permissions' => $validated['permissions']]
+                ['email'=>$email->email,'permissions' => $validated['permissions']]
             );
 
             return response()->json([

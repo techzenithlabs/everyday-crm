@@ -43,6 +43,18 @@ export const logoutUser = async (token: string) => {
   );
 };
 
+//Update User Profile By Admin
+export const updateUserById = async (id: number, data: any) => {
+  try {
+    const response = await api.put(`/admin/users/${id}`, data);
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<any>;
+    throw err.response?.data || { message: "Update failed" };
+  }
+};
+
+
 // === GET PROFILE ===
 export const getProfile = async (token: string) => {
   try {
@@ -68,6 +80,8 @@ export const updateProfile = async (token: string, data: any) => {
   });
   return response.data;
 };
+
+
 
 // === FORGOT PASSWORD ===
 export const forgotPassword = async (email: string) => {

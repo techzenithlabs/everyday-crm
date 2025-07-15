@@ -14,6 +14,7 @@ class UserPermission extends Model
 
     protected $fillable = [
         'user_id',
+        'email', // Assuming you want to store the user's email as well
         'permissions', // e.g., {"1": [], "2": [3, 4]}
     ];
 

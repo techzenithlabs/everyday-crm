@@ -78,6 +78,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     /// ─────────────────────────────
     Route::post('/invite-user', [InviteController::class, 'inviteUser']);
     Route::get('/users', [UserController::class, 'listUsers']);
+    Route::put('/users/{id}',[UserController::class, 'updateUser']);
 
     /// ─────────────────────────────
     /// 🧩 MENU & SIDEBAR CONFIG
