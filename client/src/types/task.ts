@@ -19,3 +19,17 @@ export interface Task {
   created_at?: string;
   updated_at?: string;
 }
+
+
+// In types/task.ts
+
+export interface TaskPayload {
+  title: string;
+  description?: string;
+  due_date?: string;
+  priority?: "Low" | "Medium" | "High";
+  labels?: string[];
+  assigned_to?: number | null; // Not full user, just user ID
+  status?: TaskStatus;
+}
+

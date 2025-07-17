@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
-    // ✅ List tasks for a board
     public function index($boardId)
     {
         try {
@@ -19,23 +18,20 @@ class TaskController extends Controller
             return response()->json([
                 'status' => true,
                 'data' => $tasks
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Failed to load tasks',
-                'error' => $e->getMessage()
+                'message' => 'Failed to load tasks'
             ], 500);
         }
     }
 
-    // ✅ Create task
     public function store(Request $request, $boardId)
     {
         try {
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
-                // Don't validate board_id from request
                 'description' => 'nullable|string',
                 'due_date' => 'nullable|date',
                 'priority' => 'required|in:Low,Medium,High',
@@ -47,41 +43,39 @@ class TaskController extends Controller
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
-                    'errors' => $validator->errors(),
-                ], 422);
+                    'message' => $validator->errors()->first()
+                ], 200); // ✅ still status 200, but status: false
             }
 
+
             $task = Task::create([
-                'board_id' => $boardId, // ✅ taken from route param, not request
+                'board_id' => $boardId,
                 'title' => $request->title,
                 'description' => $request->description,
                 'due_date' => $request->due_date,
                 'priority' => $request->priority,
                 'labels' => $request->labels ?? [],
                 'assigned_to' => $request->assigned_to,
-                'status' => 'pending',
+                'status' => 'todo',
                 'sort_order' => 0,
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(),
             ]);
 
             return response()->json([
                 'status' => true,
+                'message' => 'Task created successfully',
                 'data' => $task
-            ]);
-        } catch (\Throwable $th) {
+            ], 200);
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Task creation failed',
-                'error' => $th->getMessage(),
-            ], 500);
+                'message' => $e->getMessage() ?: 'Failed to create task'
+            ], 500); // ✅ Only real server error
         }
     }
 
-
-    // ✅ Update task
     public function update(Request $request, $taskId)
     {
-
         try {
             $task = Task::findOrFail($taskId);
 
@@ -99,17 +93,15 @@ class TaskController extends Controller
                 'status' => true,
                 'message' => 'Task updated successfully',
                 'data' => $task
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Failed to update task',
-                'error' => $e->getMessage()
+                'message' => 'Failed to update task'
             ], 500);
         }
     }
 
-    // ✅ Delete task
     public function destroy($taskId)
     {
         try {
@@ -119,12 +111,11 @@ class TaskController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Task deleted successfully'
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Failed to delete task',
-                'error' => $e->getMessage()
+                'message' => 'Failed to delete task'
             ], 500);
         }
     }
