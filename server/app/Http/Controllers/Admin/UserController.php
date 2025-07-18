@@ -16,7 +16,7 @@ class UserController extends Controller
         try {
             $menus = Menu::where('is_active', true)->get();
 
-            $query = User::with(['role', 'userPermissions'])
+            $query = User::with(['role', 'userPermissions', 'userInfo'])
                 ->where('role_id', '!=', 1)
                 ->select('*');
 

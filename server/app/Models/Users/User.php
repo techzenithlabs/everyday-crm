@@ -100,4 +100,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserPermission::class);
     }
+
+    public function userInfo()
+    {
+        return $this->hasOne(UserInfo::class);
+    }
 }
