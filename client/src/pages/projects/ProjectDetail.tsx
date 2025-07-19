@@ -14,7 +14,13 @@ import type { User } from "@/types/user";
 import type { Task, TaskStatus, TaskPayload } from "@/types/task";
 import type { Project } from "@/types/project";
 
-const allowedStatuses: TaskStatus[] = ["todo", "in_progress", "review", "blocked", "completed"];
+const allowedStatuses: TaskStatus[] = [
+  "todo",
+  "in_progress",
+  "review",
+  "blocked",
+  "completed",
+];
 
 interface ApiErrorResponse {
   errors?: Record<string, string[]>;
@@ -58,23 +64,25 @@ const ProjectDetail = () => {
     }
   };
 
-  const handleTaskMove = async (
+    const handleTaskMove = async (
     taskId: number,
     fromBoardId: number,
     toBoardId: number,
     newIndex: number
   ) => {
     try {
-      await api.post(`/projects/tasks/${taskId}/move`, {
+      await api.post(`/tasks/${taskId}/move`, {
         from_board_id: fromBoardId,
         to_board_id: toBoardId,
         position: newIndex,
       });
-      loadProject();
-    } catch {
+
+      loadProject(); // ✅ refresh project after move
+    } catch  {
       showError("Failed to move task");
     }
   };
+
 
   const handleEditTask = (task: Task, boardId: number) => {
     setEditingTask(task);
@@ -109,9 +117,9 @@ const ProjectDetail = () => {
         showSuccess("Task updated successfully");
       } else if (boardId && project?.id) {
         await createTask(boardId, {
-            ...payload,
-            project_id: project.id,
-          });
+          ...payload,
+          project_id: project.id,
+        });
         showSuccess("Task created successfully");
       }
 
@@ -128,7 +136,8 @@ const ProjectDetail = () => {
   };
 
   if (loading) return <div className="p-6">Loading project...</div>;
-  if (!project) return <div className="p-6 text-red-500">Project not found</div>;
+  if (!project)
+    return <div className="p-6 text-red-500">Project not found</div>;
 
   return (
     <div className="p-6">

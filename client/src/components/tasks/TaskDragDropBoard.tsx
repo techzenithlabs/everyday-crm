@@ -4,14 +4,14 @@ import {
   closestCorners,
   PointerSensor,
   useSensor,
-  useSensors  
+  useSensors,
+  DragEndEvent,
+  DragOverEvent,
 } from "@dnd-kit/core";
-
-import type { DragEndEvent } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
+  arrayMove,
 } from "@dnd-kit/sortable";
 
 import BoardColumn from "@/components/kanban/BoardColumn";
@@ -26,6 +26,7 @@ interface Props {
     taskId: number,
     fromBoardId: number,
     toBoardId: number,
+    newStatus: string,
     newIndex: number
   ) => void;
   onEditTask: (task: Task, boardId: number) => void;
@@ -42,41 +43,36 @@ const TaskDragDropBoard: React.FC<Props> = ({
 }) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Prevents accidental drag on click
-      },
+      activationConstraint: { distance: 8 },
     })
   );
 
-  const findBoardIdByTaskId = (taskId: number): number | null => {
-    const board = boards.find((b) => b.tasks.some((t) => t.id === taskId));
-    return board?.id ?? null;
-  };
+  const findBoardByTaskId = (taskId: number): Board | undefined =>
+    boards.find((board) => board.tasks.some((task) => task.id === taskId));
 
   const handleDragEnd = (event: DragEndEvent): void => {
     const { active, over } = event;
-
     if (!over || active.id === over.id) return;
 
-    const fromBoardId = findBoardIdByTaskId(Number(active.id));
-    const toBoardId = findBoardIdByTaskId(Number(over.id));
-    if (!fromBoardId || !toBoardId) return;
+    const [activeTaskIdStr] = String(active.id).split("-");
+    const [overTaskIdStr, overBoardIdStr] = String(over.id).split("-");
 
-    const fromBoard = boards.find((b) => b.id === fromBoardId);
+    const taskId = Number(activeTaskIdStr);
+    const overTaskId = Number(overTaskIdStr);
+    const toBoardId = Number(overBoardIdStr);
+
+    const fromBoard = findBoardByTaskId(taskId);
     const toBoard = boards.find((b) => b.id === toBoardId);
+
     if (!fromBoard || !toBoard) return;
 
-    const fromIndex = fromBoard.tasks.findIndex((task) => task.id === Number(active.id));
-    const toIndex = toBoard.tasks.findIndex((task) => task.id === Number(over.id));
+    // Find new index (position) in the target board
+    const overIndex = toBoard.tasks.findIndex((t) => t.id === overTaskId);
+    const newIndex = overIndex >= 0 ? overIndex : toBoard.tasks.length;
 
-    // UI reordering for same board
-    if (fromBoardId === toBoardId) {
-      const updatedTasks = arrayMove(fromBoard.tasks, fromIndex, toIndex);
-      fromBoard.tasks = updatedTasks;
-    }
+    const newStatus = toBoard.slug || toBoard.title.toLowerCase().replace(/\s+/g, "_");
 
-    // Backend update
-    onTaskMove(Number(active.id), fromBoardId, toBoardId, toIndex);
+    onTaskMove(taskId, fromBoard.id, toBoard.id, newStatus, newIndex);
   };
 
   return (
@@ -85,17 +81,18 @@ const TaskDragDropBoard: React.FC<Props> = ({
       collisionDetection={closestCorners}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4">
+      <div className="flex gap-4 overflow-x-auto">
         {boards.map((board) => (
-          <div key={board.id}>
+          <div key={board.id} className="min-w-[300px]">
             <BoardColumn board={board} onAddTask={onAddTask}>
               <SortableContext
-                items={board.tasks.map((t) => t.id)}
+                items={board.tasks.map((t) => `${t.id}-${board.id}`)}
                 strategy={verticalListSortingStrategy}
               >
                 {board.tasks.map((task) => (
                   <SortableTask
-                    key={task.id}
+                    key={`${task.id}-${board.id}`}
+                    id={`${task.id}-${board.id}`}
                     task={task}
                     boardId={board.id}
                     onEditTask={onEditTask}

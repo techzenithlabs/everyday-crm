@@ -21,13 +21,14 @@ export interface Task {
 // In types/task.ts
 
 export interface TaskPayload {
-  title: string;
+  title?: string;
   description?: string;
   due_date?: string;
   priority?: "Low" | "Medium" | "High";
   labels?: string[];
-  assigned_to?: number | null; // Not full user, just user ID
+  assigned_to?: number | null;
   status?: TaskStatus;
-  project_id?: number; 
+  project_id?: number;
+  board_id?: number; // ✅ Add this line
 }
 

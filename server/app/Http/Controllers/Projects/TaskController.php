@@ -13,7 +13,7 @@ class TaskController extends Controller
     public function index($boardId)
     {
         try {
-           $tasks = Task::with(['assignee:id,first_name,last_name'])
+            $tasks = Task::with(['assignee:id,first_name,last_name'])
                 ->where('board_id', $boardId)
                 ->orderBy('sort_order')
                 ->get();
@@ -146,10 +146,37 @@ class TaskController extends Controller
                 ], 200);
             }
 
-            $task->update([
-                'board_id' => $request->to_board_id,
-                'position' => $request->position
-            ]);
+            $fromBoardId = $request->from_board_id;
+            $toBoardId = $request->to_board_id;
+            $newPosition = $request->position;
+
+            // Only if the board is changed
+            if ($fromBoardId != $toBoardId) {
+                // Shift all tasks on target board to make space
+                Task::where('board_id', $toBoardId)
+                    ->where('position', '>=', $newPosition)
+                    ->increment('position');
+
+                $task->board_id = $toBoardId;
+            } else {
+                // If sorting within same board
+                $oldPosition = $task->position;
+
+                if ($newPosition > $oldPosition) {
+                    // Moving down
+                    Task::where('board_id', $fromBoardId)
+                        ->whereBetween('position', [$oldPosition + 1, $newPosition])
+                        ->decrement('position');
+                } elseif ($newPosition < $oldPosition) {
+                    // Moving up
+                    Task::where('board_id', $fromBoardId)
+                        ->whereBetween('position', [$newPosition, $oldPosition - 1])
+                        ->increment('position');
+                }
+            }
+
+            $task->position = $newPosition;
+            $task->save();
 
             return response()->json([
                 'status' => true,

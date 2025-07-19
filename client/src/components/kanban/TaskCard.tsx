@@ -1,29 +1,27 @@
 import React from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Calendar, User } from "lucide-react";
 import { format } from "date-fns";
 import type { Task } from "@/types/task";
 
-type Props = {
+interface Props {
   task: Task;
   onEdit: () => void;
-  onView: () => void;
-};
+}
 
-// Priority badge colors
 const priorityColors: Record<string, string> = {
   High: "bg-red-100 text-red-600",
   Medium: "bg-yellow-100 text-yellow-600",
   Low: "bg-green-100 text-green-600",
 };
 
-// Calendar icon color based on priority
 const calendarColors: Record<string, string> = {
   High: "text-red-500",
   Medium: "text-yellow-500",
   Low: "text-green-600",
 };
 
-// Status badge colors using lowercase keys
 const statusColors: Record<string, string> = {
   todo: "bg-gray-200 text-gray-800",
   in_progress: "bg-blue-100 text-blue-700",
@@ -33,11 +31,24 @@ const statusColors: Record<string, string> = {
 };
 
 const TaskCard: React.FC<Props> = ({ task, onEdit }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: `${task.id}:${task.board_id}`, // Unique DnD ID
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const formattedStatus =
     task.status?.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase()) || "";
 
   return (
     <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       onClick={onEdit}
       className="bg-white border rounded-md p-3 shadow-sm cursor-pointer hover:shadow-md transition-all"
     >
@@ -74,7 +85,7 @@ const TaskCard: React.FC<Props> = ({ task, onEdit }) => {
         </div>
       )}
 
-      {/* Footer: Due date, priority, assigned user */}
+      {/* Footer */}
       <div className="flex flex-wrap items-center justify-between text-xs mt-3 gap-1 text-gray-600">
         {task.due_date && (
           <div className="flex items-center gap-1">
