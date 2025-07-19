@@ -11,8 +11,9 @@ class Board extends Model
     protected $fillable = [
         'project_id',
         'title',
-        'sort_order',
-        'created_by', // Optional, if used
+        'sort_order', // You can rename this to position too for clarity
+        'position',   // ✅ add this if not already
+        'created_by',
     ];
 
     public function project()
@@ -23,13 +24,11 @@ class Board extends Model
 
     public function tasks()
     {
-        return $this->hasMany(Task::class)->orderBy('sort_order');
+        return $this->hasMany(Task::class)->orderBy('position');
     }
 
     public function boardType()
     {
         return $this->belongsTo(BoardType::class);
     }
-
-
 }

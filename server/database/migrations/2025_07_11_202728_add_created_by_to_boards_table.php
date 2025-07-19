@@ -7,6 +7,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('boards', function (Blueprint $table) {
+
             $table->unsignedBigInteger('created_by')->nullable()->after('title');
             $table->unsignedBigInteger('updated_by')->nullable()->after('created_by');
 

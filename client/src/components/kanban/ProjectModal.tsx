@@ -1,35 +1,61 @@
 import { useState, useEffect } from "react";
-import { createProject, updateProject }  from "@/services/projectService";
-import { toast } from "react-toastify";
+import { createProject, updateProject } from "@/services/projectService";
+import type { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
+import { showSuccessToast , showErrorToast } from "@/utils/toastHelpers";
+import type { ProjectModalProps } from "@/types/project";
 
-const ProjectModal = ({ isOpen, onClose, onSuccess, initialData }: any) => {
-  const [name, setName] = useState("");
+const ProjectModal = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  initialData,
+}: ProjectModalProps) => {
+  const currentWorkspace = useSelector(
+    (state: RootState) => state.workspace.current
+  );
+
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (initialData) {
-      setName(initialData.name);
-      setDescription(initialData.description);
+    if (initialData?.title) {
+      setTitle(initialData.title);
+      setDescription(initialData.description || "");
     } else {
-      setName("");
+      setTitle("");
       setDescription("");
     }
   }, [initialData, isOpen]);
 
   const handleSubmit = async () => {
     try {
-      const payload = { name, description };
-      if (initialData?.id) {
-        await updateProject(initialData.id, payload);
-        toast.success("Project updated");
+      const isUpdate = !!initialData?.id;
+
+      if (isUpdate) {
+        // Ensure ID exists
+        const projectId = initialData.id!;
+        const payload = { title, description };
+        await updateProject(projectId, payload);
+         showSuccessToast("Project updated");
       } else {
+        if (!currentWorkspace?.id) {
+         showErrorToast("Workspace not selected.");
+          return;
+        }
+        const payload = {
+          title,
+          description,
+          workspace_id: currentWorkspace.id.toString(),
+        };
         await createProject(payload);
-        toast.success("Project created");
+        showSuccessToast("Project created");
       }
+
       onSuccess();
       onClose();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save project");
+    } catch (err) {
+      showErrorToast(err);
     }
   };
 
@@ -39,14 +65,14 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, initialData }: any) => {
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
         <h2 className="text-lg font-semibold mb-4">
-          {initialData ? "Edit Project" : "New Project"}
+          {initialData?.id ? "Edit Project" : "New Project"}
         </h2>
         <input
           type="text"
           className="w-full border rounded p-2 mb-3"
-          placeholder="Project name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          placeholder="Project Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
         />
         <textarea
           className="w-full border rounded p-2 mb-3"
@@ -62,7 +88,7 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, initialData }: any) => {
             onClick={handleSubmit}
             className="px-4 py-2 bg-blue-600 text-white rounded"
           >
-            {initialData ? "Update" : "Create"}
+            {initialData?.id ? "Update" : "Create"}
           </button>
         </div>
       </div>

@@ -1,3 +1,5 @@
+import { isBefore, isToday } from "date-fns";
+
 export function formatHumanDate(dateStr: string): string {
   const date = new Date(dateStr);
 
@@ -22,3 +24,18 @@ export function formatHumanDate(dateStr: string): string {
 
   return `${day}${daySuffix} ${month} ${year}, ${weekday} at ${time}`;
 }
+
+// utils/dateHelpers.ts
+
+export const getDueDateColor = (dueDate: string) => {
+  const date = new Date(dueDate);
+
+  if (isBefore(date, new Date())) {
+    return "text-red-600"; // Overdue
+  } else if (isToday(date)) {
+    return "text-yellow-600"; // Due today
+  } else {
+    return "text-blue-600"; // Future
+  }
+};
+

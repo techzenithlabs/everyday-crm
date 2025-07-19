@@ -10,9 +10,11 @@ export interface BoardType {
 
 export interface Board {
   id: number;
-  title: string;          // Board title like "Jobs Board"
-  slug: string;
-  sort_order: number;
-  board_type?: BoardType; // Optional nested board type
-  tasks: Task[];
+  title: string;
+  slug?: string; // optional if not used
+  sort_order?: number;
+  project_id: number;
+  created_at?: string;
+  updated_at?: string;
+  tasks: Task[]; // ✅ This is what enables nested board.tasks
 }

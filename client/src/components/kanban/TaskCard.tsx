@@ -1,75 +1,105 @@
+import React from "react";
+import { Calendar, User } from "lucide-react";
 import { format } from "date-fns";
-import StatusBadge from "@/components/common/StatusBadge";
 import type { Task } from "@/types/task";
-import { Calendar, User as UserIcon, AlertTriangle } from "lucide-react";
 
-interface TaskCardProps {
+type Props = {
   task: Task;
-  onEdit?: () => void;
-  onView?: () => void;
-}
-
-const getPriorityColor = (priority: string | undefined) => {
-  switch (priority) {
-    case "High":
-      return "bg-red-100 text-red-700";
-    case "Medium":
-      return "bg-yellow-100 text-yellow-700";
-    case "Low":
-      return "bg-green-100 text-green-700";
-    default:
-      return "bg-gray-100 text-gray-600";
-  }
+  onEdit: () => void;
+  onView: () => void;
 };
 
-const TaskCard = ({ task, onEdit, onView }: TaskCardProps) => {
-  const handleClick = () => {
-    if (onView) onView();
-  };
+// Priority badge colors
+const priorityColors: Record<string, string> = {
+  High: "bg-red-100 text-red-600",
+  Medium: "bg-yellow-100 text-yellow-600",
+  Low: "bg-green-100 text-green-600",
+};
+
+// Calendar icon color based on priority
+const calendarColors: Record<string, string> = {
+  High: "text-red-500",
+  Medium: "text-yellow-500",
+  Low: "text-green-600",
+};
+
+// Status badge colors using lowercase keys
+const statusColors: Record<string, string> = {
+  todo: "bg-gray-200 text-gray-800",
+  in_progress: "bg-blue-100 text-blue-700",
+  review: "bg-purple-100 text-purple-700",
+  blocked: "bg-red-100 text-red-600",
+  completed: "bg-green-100 text-green-600",
+};
+
+const TaskCard: React.FC<Props> = ({ task, onEdit }) => {
+  const formattedStatus =
+    task.status?.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase()) || "";
 
   return (
     <div
-      className="bg-white p-3 rounded shadow-sm border hover:shadow cursor-pointer space-y-2 transition"
-      onClick={handleClick}
-      onDoubleClick={onEdit}
+      onClick={onEdit}
+      className="bg-white border rounded-md p-3 shadow-sm cursor-pointer hover:shadow-md transition-all"
     >
-      {/* Title + Status */}
-      <div className="flex justify-between items-start">
-        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
-          {task.title || "Untitled Task"}
-        </h3>
-        {task.status && <StatusBadge status={task.status} />}
+      {/* Title + Status badge */}
+      <div className="flex justify-between items-start mb-1">
+        <div className="font-semibold text-sm text-gray-800">{task.title}</div>
+        {task.status && (
+          <span
+            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+              statusColors[task.status] || "bg-gray-200 text-gray-700"
+            }`}
+          >
+            {formattedStatus}
+          </span>
+        )}
       </div>
 
-      {/* Optional Description */}
+      {/* Description */}
       {task.description && (
-        <p className="text-xs text-gray-600 line-clamp-2">{task.description}</p>
+        <p className="text-xs text-gray-500 line-clamp-2">{task.description}</p>
       )}
 
-      {/* Footer Info */}
-      <div className="flex flex-wrap gap-2 items-center text-xs text-gray-700">
+      {/* Labels */}
+      {task.labels && task.labels.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {task.labels.map((label, i) => (
+            <span
+              key={i}
+              className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-0.5 rounded"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Footer: Due date, priority, assigned user */}
+      <div className="flex flex-wrap items-center justify-between text-xs mt-3 gap-1 text-gray-600">
         {task.due_date && (
           <div className="flex items-center gap-1">
-            <span>📅</span>{format(new Date(task.due_date), "dd MMM yyyy, h:mm a")}
+            <Calendar
+              size={14}
+              className={calendarColors[task.priority || "Low"]}
+            />
+            {format(new Date(task.due_date), "dd MMM")}
           </div>
         )}
 
         {task.priority && (
-          <div
-            className={`px-2 py-0.5 rounded-full flex items-center gap-1 ${getPriorityColor(
-              task.priority
-            )}`}
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+              priorityColors[task.priority]
+            }`}
           >
-            <AlertTriangle size={12} /> {task.priority}
-          </div>
+            {task.priority}
+          </span>
         )}
 
-        {task.assigned_user?.first_name && (
-          <div className="flex items-center gap-1 ml-auto">
-            <UserIcon size={14} />
-            <span>
-              {task.assigned_user.first_name} {task.assigned_user.last_name}
-            </span>
+        {task.assigned_to && (
+          <div className="flex items-center gap-1">
+            <User size={14} />
+            <span>User {task.assigned_to}</span>
           </div>
         )}
       </div>

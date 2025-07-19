@@ -10,6 +10,7 @@ export const showConfirm = async (
     title,
     text,
     icon: "warning",
+    showCloseButton: true,
     showCancelButton: true,
     confirmButtonColor: "#2563eb",
     cancelButtonColor: "#d33",
@@ -19,34 +20,76 @@ export const showConfirm = async (
   return result.isConfirmed;
 };
 
-export const showSuccess = (title = "Success!", text = "") => {
+export const showSuccess = (
+  title = "Success!",
+  text = "",
+  timer = 2000
+) => {
   return Swal.fire({
     title,
     text,
     icon: "success",
-    confirmButtonColor: "#16a34a",
+    showConfirmButton: false,
+    showCloseButton: true,
+    timer: timer,
+    timerProgressBar: true,
+    toast: true,
+    position: "top-end",
+    didOpen: (toast) => {
+      toast.addEventListener("mouseenter", Swal.stopTimer);
+      toast.addEventListener("mouseleave", Swal.resumeTimer);
+    },
   });
 };
 
-export const showError = (title = "Error!", text = "") => {
+
+export const showError = (
+  title = "Error!",
+  text = "",
+  timer = 3000
+) => {
   return Swal.fire({
     title,
     text,
     icon: "error",
-    confirmButtonColor: "#ef4444",
+    showConfirmButton: false,
+    showCloseButton: true,
+    timer: timer,
+    timerProgressBar: true,
+    toast: true,
+    position: "top-end",
+    didOpen: (toast) => {
+      toast.addEventListener("mouseenter", Swal.stopTimer);
+      toast.addEventListener("mouseleave", Swal.resumeTimer);
+    },
   });
 };
 
-export const showInfo = (title: string, text = "") => {
+
+ export const showInfo = (
+  title: string,
+  text = "",
+  timer = 2500
+) => {
   return Swal.fire({
     title,
     text,
     icon: "info",
-    confirmButtonColor: "#3b82f6",
+    showConfirmButton: false,
+    showCloseButton: true,
+    timer,
+    timerProgressBar: true,
+    toast: true,
+    position: "top-end",
+    didOpen: (toast) => {
+      toast.addEventListener("mouseenter", Swal.stopTimer);
+      toast.addEventListener("mouseleave", Swal.resumeTimer);
+    },
   });
 };
 
-export const showPrompt = async (
+
+  export const showPrompt = async (
   title = "Enter a value",
   inputLabel = "Your input"
 ): Promise<string | null> => {

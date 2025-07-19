@@ -124,4 +124,5 @@ Route::middleware(['auth:sanctum'])->prefix('projects')->group(function () {
     Route::put('/tasks/{id}', [TaskController::class, 'update']);             // Update task
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);         // Delete task
     Route::post('/tasks/reorder', [TaskController::class, 'reorder']);          // Reorder tasks (optional)
+    Route::post('/tasks/{task}/move', [TaskController::class, 'move']);
 });

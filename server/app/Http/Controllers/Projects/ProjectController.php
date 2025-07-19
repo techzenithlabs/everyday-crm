@@ -44,7 +44,15 @@ class ProjectController extends Controller
 
     public function show($id)
     {
-        $project = Project::with('boards.tasks', 'boards.boardType')->find($id);
+        $project = Project::with([
+            'boards' => function ($query) {
+                $query->orderBy('sort_order'); // Optional for board ordering
+            },
+            'boards.tasks' => function ($query) {
+                $query->orderBy('position'); // Ensure task order
+            },
+            'boards.boardType'
+        ])->find($id);
 
         if (!$project) {
             return response()->json([
@@ -58,6 +66,7 @@ class ProjectController extends Controller
             'data' => $project,
         ]);
     }
+
 
     public function store(Request $request)
     {

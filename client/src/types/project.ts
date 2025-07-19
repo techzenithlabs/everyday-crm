@@ -7,3 +7,12 @@ export interface Project {
   description?: string;
   boards: Board[];
 }
+
+
+export interface ProjectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  initialData?: Partial<Project>; // optional and flexible
+}
+
