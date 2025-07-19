@@ -46,23 +46,25 @@ export default function EditUserModal({
   });
 
   useEffect(() => {
-    if (user) {
-      const flatUser: UserFields = {
-        id: user.id,
-        first_name: user.first_name || "",
-        last_name: user.last_name || "",
-        email: user.email || "",
-        status: user.status ?? 1,
-        phone: user.info?.phone || "",
-        address: user.info?.address || "",
-        city: user.info?.city || "",
-        state: user.info?.state || "",
-        postal_code: user.info?.postal_code || "",
-      };
+  console.log("Received user in modal:", user);
+  if (user) {
+    const flatUser: UserFields = {
+      id: user.id,
+      first_name: user.first_name || "",
+      last_name: user.last_name || "",
+      email: user.email || "",
+      status: user.status ?? 1,
+      phone: user.user_info?.phone || "",
+      address: user.user_info?.address || "",
+      city: user.user_info?.city || "",
+      state: user.user_info?.state || "",
+      postal_code: user.user_info?.postal_code || "",
+    };
 
-      setFormData(flatUser);
-    }
-  }, [user]);
+    setFormData(flatUser);
+  }
+}, [user]);
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

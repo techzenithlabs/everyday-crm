@@ -32,6 +32,7 @@ const UserList = () => {
         sortBy,
         sortOrder,
       });
+      console.log(" Full User Response:", data); // <-- LOG ALL RESPONSE HERE
       setUsers(data.data);
       setTotalPages(data.last_page);
     } catch (err) {
