@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 use App\Models\Projects\BoardType;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 class ProjectController extends Controller
@@ -77,6 +78,7 @@ class ProjectController extends Controller
                 'description' => 'nullable|string',
             ]);
 
+            // ✅ Step 1: Create the Project
             $project = Project::create([
                 'workspace_id' => $validated['workspace_id'],
                 'title' => $validated['title'],
@@ -85,16 +87,39 @@ class ProjectController extends Controller
                 'status' => Project::STATUS_ACTIVE,
             ]);
 
-            // Auto-create default boards
-            //$defaultBoards = Config::get('boards.default_board_types');
-            $defaultBoardTypes = BoardType::orderBy('sort_order')->get();
+            // ✅ Step 2: If board_types are missing, seed them
+            if (BoardType::count() === 0) {
+                BoardType::insert([
+                    [
+                        'name' => 'Jobs Board',
+                        'slug' => 'jobs-board',
+                        'sort_order' => 1,
+                        'is_active' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                    [
+                        'name' => 'Permits Board',
+                        'slug' => 'permits-board',
+                        'sort_order' => 2,
+                        'is_active' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                ]);
+            }
+
+            // ✅ Step 3: Auto-create default boards for this project
+            $defaultBoardTypes = BoardType::where('is_active', 1)->orderBy('sort_order')->get();
+
             foreach ($defaultBoardTypes as $type) {
                 Board::create([
                     'project_id'     => $project->id,
-                    'title'           => $type->name,
+                    'title'          => $type->name,
                     'slug'           => $type->slug,
                     'sort_order'     => $type->sort_order,
-                    'board_type_id'  => $type->id, // if you added this column
+                    'board_type_id'  => $type->id,
+                    'created_by'     => Auth::id(),
                 ]);
             }
 
@@ -112,6 +137,7 @@ class ProjectController extends Controller
             ], 500);
         }
     }
+
 
     public function update(Request $request, Project $project)
     {
