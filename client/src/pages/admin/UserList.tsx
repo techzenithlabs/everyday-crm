@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ReactPaginate from "react-paginate";
-import { toast } from "react-toastify";
 import EditUserModal from "../../components/modals/EditUserModal";
 import ManageAccessModal from "../../components/modals/ManageAccessModal";
-import { getInvitedUsers, getAllPermissions } from "../../services/adminService";
+import {
+  getInvitedUsers,
+  getAllPermissions,
+} from "../../services/adminService";
 import { updateUserPermissions } from "@/services/userPermissionService";
 import { showConfirm } from "@/utils/ConfirmDialogHelpers";
+import { showSuccessToast, showErrorToast } from "@/utils/toastHelpers";
+import type { User, UserFields } from "@/types/user";
 
 const UserList = () => {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -19,8 +23,24 @@ const UserList = () => {
   const [loading, setLoading] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [accessModalOpen, setAccessModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [allPermissions, setAllPermissions] = useState([]);
+
+  const isUserExpired = (user: User): boolean => {
+    if (!user.expires_at || user.expires_at === "0000-00-00 00:00:00") return false;
+
+    const expiresAt = new Date(user.expires_at);
+    const now = new Date();
+
+    // Debugging logs
+    console.log("USER:", user.email);
+    console.log("EXPIRES_AT:", expiresAt);
+    console.log("NOW:", now);
+    console.log("IS_EXPIRED:", expiresAt.getTime() < now.getTime());
+
+    return expiresAt.getTime() < now.getTime();
+  };
+
 
   const fetchUsers = async () => {
     try {
@@ -32,7 +52,6 @@ const UserList = () => {
         sortBy,
         sortOrder,
       });
-      console.log(" Full User Response:", data); // <-- LOG ALL RESPONSE HERE
       setUsers(data.data);
       setTotalPages(data.last_page);
     } catch (err) {
@@ -70,31 +89,43 @@ const UserList = () => {
     return sortOrder === "asc" ? " ▲" : " ▼";
   };
 
-  const getRegistrationStatus = (user: any) => {
+  const getRegistrationStatus = (user: User) => {
     if (user.used) {
       return (
-        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Registered</span>
+        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+          Registered
+        </span>
       );
-    } else if (new Date(user.expires_at) < new Date()) {
+    } else if (isUserExpired(user)) {
       return (
-        <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Expired</span>
+        <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+          Expired
+        </span>
       );
     } else {
       return (
-        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Pending</span>
+        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
+          Pending
+        </span>
       );
     }
   };
 
-  const getActiveStatus = (user: any) => {
+  const getActiveStatus = (user: User) => {
     return user.status === 0 ? (
-      <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">Inactive</span>
+      <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+        Inactive
+      </span>
     ) : (
-      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Active</span>
+      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+        Active
+      </span>
     );
   };
 
-  const handleSavePermissions = async (updatedPermissions: Record<number, number[]>) => {
+  const handleSavePermissions = async (
+    updatedPermissions: Record<number, number[]>
+  ) => {
     try {
       if (!selectedUser?.id) return;
       const confirmed = await showConfirm(
@@ -105,19 +136,19 @@ const UserList = () => {
       if (!confirmed) return;
 
       await updateUserPermissions(selectedUser.id, updatedPermissions);
-      toast.success("Permissions updated successfully");
+      showSuccessToast("Permissions updated successfully");
       setAccessModalOpen(false);
       fetchUsers();
-    } catch (error) {
-      toast.error("❌ Failed to update permissions");
+    } catch {
+      showErrorToast("❌ Failed to update permissions");
     }
   };
 
-  const handleUserUpdate = (updatedUser: any) => {
+  const handleUserUpdate = (updatedUser: UserFields) => {
     setUsers((prev) =>
       prev.map((u) => (u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
     );
-    setSelectedUser(updatedUser);
+    setSelectedUser(updatedUser as unknown as User);
     setEditModalOpen(false);
   };
 
@@ -173,47 +204,79 @@ const UserList = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={9} className="text-center py-6">Loading...</td>
+                <td colSpan={9} className="text-center py-6">
+                  Loading...
+                </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-6">No users found</td>
+                <td colSpan={9} className="text-center py-6">
+                  No users found
+                </td>
               </tr>
             ) : (
-              users.map((user: any) => (
-                <tr key={user.id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{user.last_name}</td>
-                  <td className="px-4 py-3">{user.first_name}</td>
-                  <td className="px-4 py-3">{user.role?.name || "—"}</td>
-                  <td className="px-4 py-3">{user.email}</td>
-                  <td className="px-4 py-3">{user.address || "N/A"}</td>
-                  <td className="px-4 py-3">{getRegistrationStatus(user)}</td>
-                  <td className="px-4 py-3 font-semibold">{user.permission_count || 0}</td>
-                  <td className="px-4 py-3">{getActiveStatus(user)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setEditModalOpen(true);
-                        }}
-                        className="text-blue-600 hover:underline"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setAccessModalOpen(true);
-                        }}
-                        className="text-indigo-600 hover:underline"
-                      >
-                        Manage Access
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              users.map((user) => {
+                const expired = isUserExpired(user);
+                return (
+                  <tr key={user.id} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-3">{user.last_name}</td>
+                    <td className="px-4 py-3">{user.first_name}</td>
+                    <td className="px-4 py-3">{user.role?.name || "—"}</td>
+                    <td className="px-4 py-3">{user.email}</td>
+                    <td className="px-4 py-3">
+                      {user.user_info?.address || "N/A"}
+                    </td>
+                    <td className="px-4 py-3">{getRegistrationStatus(user)}</td>
+                    <td className="px-4 py-3 font-semibold">
+                      {user.permission_count || 0}
+                    </td>
+                    <td className="px-4 py-3">{getActiveStatus(user)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        {/* Edit Button */}
+                        {!isUserExpired(user) ? (
+                          <div className="relative group cursor-not-allowed text-gray-400">
+                            <span>Edit</span>
+                            <div className="absolute left-0 -top-8 opacity-0 group-hover:opacity-100 bg-black text-white text-xs px-2 py-1 rounded shadow transition duration-300 whitespace-nowrap z-10">
+                              Expired users cannot be edited
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setEditModalOpen(true);
+                            }}
+                            className="text-blue-600 hover:underline"
+                          >
+                            Edit
+                          </button>
+                        )}
+
+                        {/* Manage Access Button */}
+                        {!isUserExpired(user) ? (
+                          <div className="relative group cursor-not-allowed text-gray-400">
+                            <span>Manage Access</span>
+                            <div className="absolute left-0 -top-8 opacity-0 group-hover:opacity-100 bg-black text-white text-xs px-2 py-1 rounded shadow transition duration-300 whitespace-nowrap z-10">
+                              Expired users cannot manage access
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setAccessModalOpen(true);
+                            }}
+                            className="text-indigo-600 hover:underline"
+                          >
+                            Manage Access
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -262,7 +325,7 @@ const UserList = () => {
           isOpen={true}
           user={selectedUser}
           onClose={() => setEditModalOpen(false)}
-          onSave={handleUserUpdate} // ✅ Handles user update correctly
+          onSave={handleUserUpdate}
         />
       )}
 
@@ -274,8 +337,10 @@ const UserList = () => {
           userPermissions={
             selectedUser?.user_permissions?.permissions &&
             typeof selectedUser.user_permissions.permissions === "object"
-              ? selectedUser.user_permissions.permissions
-              : {}
+              ? Object.values(selectedUser.user_permissions.permissions)
+                  .flat()
+                  .filter((id): id is number => typeof id === "number")
+              : []
           }
           onClose={() => setAccessModalOpen(false)}
           onSave={handleSavePermissions}

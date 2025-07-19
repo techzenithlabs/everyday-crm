@@ -1,37 +1,23 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { toast } from "react-toastify";
 import { updateUserById } from "@/services/auth";
-
-/* ─── Types ─────────────────────────────────────────────── */
-export type UserFields = {
-  id?: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  status: 0 | 1;
-};
+import type { User, UserFields } from "@/types/user";
+import { showSuccessToast, showErrorToast } from "@/utils/toastHelpers";
 
 type EditUserModalProps = {
   isOpen: boolean;
-  user: any; // since user.info may be nested
+  user: User;
   onClose: () => void;
   onSave: (updated: UserFields) => void;
 };
 
-/* ─── Component ─────────────────────────────────────────── */
-export default function EditUserModal({
+const EditUserModal = ({
   isOpen,
   user,
   onClose,
   onSave,
-}: EditUserModalProps) {
+}: EditUserModalProps) => {
   const [formData, setFormData] = useState<UserFields>({
     id: 0,
     first_name: "",
@@ -46,32 +32,32 @@ export default function EditUserModal({
   });
 
   useEffect(() => {
-  console.log("Received user in modal:", user);
-  if (user) {
-    const flatUser: UserFields = {
-      id: user.id,
-      first_name: user.first_name || "",
-      last_name: user.last_name || "",
-      email: user.email || "",
-      status: user.status ?? 1,
-      phone: user.user_info?.phone || "",
-      address: user.user_info?.address || "",
-      city: user.user_info?.city || "",
-      state: user.user_info?.state || "",
-      postal_code: user.user_info?.postal_code || "",
-    };
-
-    setFormData(flatUser);
-  }
-}, [user]);
-
+    if (user) {
+      const flatUser: UserFields = {
+        id: user.id,
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        email: user.email || "",
+        status: user.status === 0 ? 0 : 1,
+        phone: user.user_info?.phone || "",
+        address: user.user_info?.address || "",
+        city: user.user_info?.city || "",
+        state: user.user_info?.state || "",
+        postal_code: user.user_info?.postal_code || "",
+      };
+      setFormData(flatUser);
+    }
+  }, [user]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     const newValue = name === "status" ? parseInt(value) : value;
-    setFormData((prev) => ({ ...prev, [name]: newValue }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
   };
 
   const handleSave = async () => {
@@ -89,28 +75,42 @@ export default function EditUserModal({
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!cleaned.first_name) return toast.error("First name is required");
-    if (!cleaned.last_name) return toast.error("Last name is required");
-    if (!cleaned.email) return toast.error("Email is required");
+    if (!cleaned.first_name) return showErrorToast("First name is required");
+    if (!cleaned.last_name) return showErrorToast("Last name is required");
+    if (!cleaned.email) return showErrorToast("Email is required");
     if (!emailRegex.test(cleaned.email))
-      return toast.error("Invalid email format");
-    if (!cleaned.phone) return toast.error("Phone is required");
+      return showErrorToast("Invalid email format");
+    if (!cleaned.phone) return showErrorToast("Phone is required");
     if (cleaned.phone.length < 7)
-      return toast.error("Phone must be at least 7 digits");
-    if (!cleaned.city) return toast.error("City is required");
-    if (!cleaned.state) return toast.error("State is required");
-    if (!cleaned.postal_code) return toast.error("Postal Code is required");
-    if (!cleaned.address) return toast.error("Address is required");
+      return showErrorToast("Phone must be at least 7 digits");
+    if (!cleaned.city) return showErrorToast("City is required");
+    if (!cleaned.state) return showErrorToast("State is required");
+    if (!cleaned.postal_code) return showErrorToast("Postal Code is required");
+    if (!cleaned.address) return showErrorToast("Address is required");
 
     try {
-      await updateUserById(cleaned?.id!, cleaned);
-      toast.success("User updated successfully");
+      await updateUserById(cleaned.id, cleaned);
+      showSuccessToast("User updated successfully");
       onSave(cleaned);
       onClose();
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to update user");
+    } catch (error) {
+      showErrorToast(error || "Failed to update user");
     }
   };
+
+  const fields: {
+    label: string;
+    name: keyof UserFields;
+    type?: string;
+  }[] = [
+    { label: "First Name", name: "first_name" },
+    { label: "Last Name", name: "last_name" },
+    { label: "Email", name: "email" },
+    { label: "Phone", name: "phone" },
+    { label: "City", name: "city" },
+    { label: "State", name: "state" },
+    { label: "Postal Code", name: "postal_code", type: "text" },
+  ];
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -152,19 +152,7 @@ export default function EditUserModal({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[ 
-                    { label: "First Name", name: "first_name" },
-                    { label: "Last Name", name: "last_name" },
-                    { label: "Email", name: "email" },
-                    { label: "Phone", name: "phone" },
-                    { label: "City", name: "city" },
-                    { label: "State", name: "state" },
-                    {
-                      label: "Postal Code",
-                      name: "postal_code",
-                      type: "text",
-                    },
-                  ].map(({ label, name, type = "text" }) => (
+                  {fields.map(({ label, name, type = "text" }) => (
                     <div key={name}>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         {label}
@@ -172,7 +160,7 @@ export default function EditUserModal({
                       <input
                         type={type}
                         name={name}
-                        value={(formData as any)[name]}
+                        value={formData[name] ?? ""}
                         onChange={handleChange}
                         className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       />
@@ -230,4 +218,6 @@ export default function EditUserModal({
       </Dialog>
     </Transition.Root>
   );
-}
+};
+
+export default EditUserModal;
