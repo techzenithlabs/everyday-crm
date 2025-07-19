@@ -82,8 +82,7 @@ class TaskController extends Controller
 
     public function update(Request $request, $taskId)
     {
-        header("Access-Control-Allow-Origin: *");
-        dd($request->all());
+
         try {
             $task = Task::findOrFail($taskId);
 
