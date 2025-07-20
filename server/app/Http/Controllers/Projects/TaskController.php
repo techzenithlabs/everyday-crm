@@ -191,4 +191,75 @@ class TaskController extends Controller
             ], 500);
         }
     }
+
+    public function moveWithinBoard(Request $request, $taskId)
+    {
+        try {
+            $task = Task::findOrFail($taskId);
+
+            $validator = Validator::make($request->all(), [
+                'status' => 'required|string|in:todo,in_progress,completed',
+                'position' => 'required|integer|min:0',
+                'board_id' => 'required|exists:boards,id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
+
+            $boardId = $request->board_id;
+            $newStatus = $request->status;
+            $newPosition = $request->position;
+
+            // If status changed
+            if ($task->status !== $newStatus) {
+                // Decrement positions of tasks in old status
+                Task::where('board_id', $boardId)
+                    ->where('status', $task->status)
+                    ->where('position', '>', $task->position)
+                    ->decrement('position');
+
+                // Increment positions of tasks in new status
+                Task::where('board_id', $boardId)
+                    ->where('status', $newStatus)
+                    ->where('position', '>=', $newPosition)
+                    ->increment('position');
+
+                $task->status = $newStatus;
+            } else {
+                // Reordering within same status
+                $oldPosition = $task->position;
+
+                if ($newPosition > $oldPosition) {
+                    Task::where('board_id', $boardId)
+                        ->where('status', $newStatus)
+                        ->whereBetween('position', [$oldPosition + 1, $newPosition])
+                        ->decrement('position');
+                } elseif ($newPosition < $oldPosition) {
+                    Task::where('board_id', $boardId)
+                        ->where('status', $newStatus)
+                        ->whereBetween('position', [$newPosition, $oldPosition - 1])
+                        ->increment('position');
+                }
+            }
+
+            $task->position = $newPosition;
+            $task->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Task moved within board successfully',
+                'data' => $task
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to move task within board',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

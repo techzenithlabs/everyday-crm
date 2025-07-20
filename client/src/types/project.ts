@@ -1,11 +1,13 @@
 // File: types/project.ts
 import type { Board } from "./board";
+import type { User } from "./user"; 
 
 export interface Project {
   id: number;
   title: string;
   description?: string;
   boards: Board[];
+  users?: User[];
 }
 
 

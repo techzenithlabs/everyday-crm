@@ -48,3 +48,19 @@ export const getBoardsByProject = async (projectId: number) => {
   if (!res.data.status) throw new Error("Failed to fetch boards");
   return res.data.data;
 };
+
+// ✅ Move task (update position or board)
+export const moveTask = async (
+  taskId: number,
+  payload: {
+    from_board_id: number;
+    to_board_id: number;
+    status: string;
+    position: number;
+  }
+) => {
+  const res = await api.put(`/tasks/${taskId}/move`, payload);
+  if (!res.data.status) throw new Error("Failed to move task");
+  return res.data.data;
+};
+

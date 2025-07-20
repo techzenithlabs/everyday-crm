@@ -125,4 +125,5 @@ Route::middleware(['auth:sanctum'])->prefix('projects')->group(function () {
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);         // Delete task
     Route::post('/tasks/reorder', [TaskController::class, 'reorder']);          // Reorder tasks (optional)
     Route::post('/tasks/{task}/move', [TaskController::class, 'move']);
+    Route::post('/tasks/{task}/move-within-board', [TaskController::class, 'moveWithinBoard']);
 });

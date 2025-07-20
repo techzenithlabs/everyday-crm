@@ -48,3 +48,21 @@ export const moveTask = async (
 
   return res.data;
 };
+
+export const moveTaskWithinBoard = async (
+  taskId: number,
+  boardId: number,
+  newStatus: string,
+  newPosition: number
+) => {
+  const response = await api.post(
+    `/projects/tasks/${taskId}/move-within-board`,
+    {
+      board_id: boardId,
+      status: newStatus,
+      position: newPosition,
+    }
+  );
+
+  return response.data;
+};
