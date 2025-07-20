@@ -70,7 +70,7 @@ const PermitsBoard: React.FC = () => {
 
   const handleTaskMove = async (
     taskId: number,
-    fromStatus: string,
+  //  fromStatus: string,
     toStatus: string,
     newIndex: number
   ) => {
@@ -160,7 +160,7 @@ const PermitsBoard: React.FC = () => {
         const currentIndex = tasks.findIndex((t) => t.id === taskId);
 
         if (fromStatus !== toStatus || currentIndex !== newIndex) {
-          handleTaskMove(taskId, fromStatus, toStatus, newIndex);
+         handleTaskMove(taskId, toStatus, newIndex); 
         }
       }}
     >

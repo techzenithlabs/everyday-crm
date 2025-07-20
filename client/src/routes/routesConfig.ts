@@ -7,10 +7,10 @@ import {
   FileText,
   Wallet,
   UserPlus,
-  ShieldCheck,
-  FolderKanban,
-  Briefcase,
-  Book,
+  // ShieldCheck,
+  // FolderKanban,
+  // Briefcase,
+  // Book,
   Users,
 } from "lucide-react";
 

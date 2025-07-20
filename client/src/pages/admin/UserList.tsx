@@ -216,7 +216,7 @@ const UserList = () => {
               </tr>
             ) : (
               users.map((user) => {
-                const expired = isUserExpired(user);
+                //const expired = isUserExpired(user);
                 return (
                   <tr key={user.id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-3">{user.last_name}</td>

@@ -7,12 +7,12 @@ import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import ProjectCard from "@/components/kanban/ProjectCard";
 import WorkspaceSelector from "@/components/workspaces/WorkspaceSelector";
 import CreateWorkspaceModal from "@/components/workspaces/CreateWorkspaceModal";
-import { fetchWorkspaces, clearWorkspace,setCurrentWorkspace } from "@/redux/slices/workspaceSlice";
+import { fetchWorkspaces,setCurrentWorkspace } from "@/redux/slices/workspaceSlice";
 import { toast } from "react-toastify";
 
 const Projects = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { all: allWorkspaces, current: currentWorkspace } = useSelector((state: RootState) => state.workspace);
+  const { current: currentWorkspace } = useSelector((state: RootState) => state.workspace);
   //const allWorkspaces = useSelector((state: RootState) => state.workspace.all);
 
   const [projects, setProjects] = useState<Project[]>([]);

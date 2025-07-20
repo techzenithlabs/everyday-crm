@@ -38,3 +38,18 @@ export interface UserFields {
   status: 0 | 1;
 }
 
+export interface UpdateProfilePayload {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  password?: string;
+  password_confirmation?: string;
+  current_password?: string;
+  user_info?: {
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    postal_code?: string;
+  };
+}

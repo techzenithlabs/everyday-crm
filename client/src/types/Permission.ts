@@ -3,5 +3,5 @@
 export interface Permission {
   id: number;
   name: string;
-  children?: Permission[];
+  children?: Permission[]; // ✅ Add this
 }

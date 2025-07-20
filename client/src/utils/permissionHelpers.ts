@@ -1,4 +1,5 @@
-import type { Permission } from './../types/index';
+//import type { Permission } from './../types/index';
+import type { Permission } from '@/types/Permission';
 
 export const flattenPermissions = (
   permObject: Record<number, number[]>
@@ -18,7 +19,7 @@ export const groupPermissions = (
   const grouped: Record<number, number[]> = {};
 
   allPermissions.forEach((parent) => {
-    const childIds = parent?.children?.map((c) => c.id) || [];
+    const childIds = parent?.children?.map((c: Permission) => c.id) || [];
     const selectedChildren = childIds.filter((id) =>
       selectedIds.includes(id)
     );

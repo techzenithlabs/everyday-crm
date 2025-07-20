@@ -19,7 +19,7 @@ import SortableTask from "@/components/tasks/SortableTask";
 import type { Task } from "@/types/task";
 import { moveTaskWithinBoard } from "@/services/taskService";
 import { statusLabels } from "@/utils/statusLabels";
-import { showSuccessToast, showErrorToast } from "@/utils/toastHelpers";
+import {showErrorToast } from "@/utils/toastHelpers";
 import { showSuccess } from "@/utils/ConfirmDialogHelpers";
 
 interface Props {
@@ -110,7 +110,7 @@ const StatusBoard: React.FC<Props> = ({
             ? { ...t, status: backendTargetStatus, position: newPosition }
             : t
         );
-        setTasks(updatedTasks);
+        setTasks(updatedTasks as Task[]);
 
         showSuccess(
           "Task Moved",

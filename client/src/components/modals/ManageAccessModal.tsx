@@ -1,7 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { flattenPermissions,groupPermissions } from "@/utils/permissionHelpers";
+import { groupPermissions } from "@/utils/permissionHelpers";
 export type Permission = {
   id: number;
   name: string;

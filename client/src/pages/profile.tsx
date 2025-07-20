@@ -6,6 +6,7 @@ import { AxiosError } from "axios";
 import type { RootState } from "../redux/store";
 import { getProfile, updateProfile } from "../services/auth";
 import { logout, updateUser } from "../redux/slices/authSlice";
+import type { UpdateProfilePayload } from "@/types/user";
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -62,42 +63,57 @@ const Profile = () => {
   };
 
   const handleUpdate = async () => {
-    // ✅ Client-side password logic
     if (form.password) {
       if (!form.current_password) {
         toast.error("Current password is required to change your password");
         return;
       }
-
       if (form.password !== form.password_confirmation) {
         toast.error("New password and confirm password do not match");
         return;
       }
     }
 
+    const payload: UpdateProfilePayload = {
+      first_name: form.first_name,
+      last_name: form.last_name,
+      current_password: form.current_password || undefined,
+      password: form.password || undefined,
+      password_confirmation: form.password_confirmation || undefined,
+      user_info: {
+        phone: form.phone,
+        address: form.address,
+        city: form.city,
+        state: form.state,
+        postal_code: form.postal_code,
+      },
+    };
+
     try {
-      const response = await updateProfile(token!, form);
+      const response = await updateProfile(token!, payload);
 
       if (response.status === false) {
         toast.error(response.message || "Failed to update profile");
         return;
       }
 
-      // ✅ Update redux state with all fields
-      dispatch(
-        updateUser({
-          first_name: form.first_name,
-          last_name: form.last_name,
-          email: form.email,
-          phone: form.phone,
-          address: form.address,
-          city: form.city,
-          state: form.state,
-          postal_code: form.postal_code,
-        })
-      );
+      // ✅ Update redux user (omit passwords)
+     dispatch(
+          updateUser({
+            first_name: form.first_name,
+            last_name: form.last_name,
+            email: form.email,
+            user_info: {
+              phone: form.phone,
+              address: form.address,
+              city: form.city,
+              state: form.state,
+              postal_code: form.postal_code,
+            },
+          })
+        );
 
-      // Clear password fields
+
       setForm((prev) => ({
         ...prev,
         current_password: "",

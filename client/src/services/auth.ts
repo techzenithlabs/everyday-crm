@@ -1,5 +1,6 @@
 import api from "../api";
 import { AxiosError } from "axios";
+import type { UpdateProfilePayload } from "@/types/user";
 
 interface RegisterPayload {
   name: string;
@@ -72,7 +73,11 @@ export const getProfile = async (token: string) => {
 };
 
 // === UPDATE PROFILE ===
-export const updateProfile = async (token: string, data: any) => {
+
+export const updateProfile = async (
+  token: string,
+  data: UpdateProfilePayload
+) => {
   const response = await api.put("/profile/update", data, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -80,6 +85,7 @@ export const updateProfile = async (token: string, data: any) => {
   });
   return response.data;
 };
+
 
 
 

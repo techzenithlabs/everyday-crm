@@ -8,6 +8,7 @@ import type { Task } from "@/types/task";
 interface Props {
   task: Task;
   onEdit: () => void;
+  onView?: () => void; //
 }
 
 const priorityColors: Record<string, string> = {

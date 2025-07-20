@@ -1,5 +1,4 @@
-import React from "react";
-import type { Module } from "../../types";
+import type { Module } from "@/types/module";
 
 interface Props {
   modules: Module[];
