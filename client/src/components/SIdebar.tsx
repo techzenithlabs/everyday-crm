@@ -57,6 +57,7 @@ const Sidebar = () => {
     const fetchMenus = async () => {
       try {
         const res = await api.get("/admin/sidebar-menus");
+          console.log("📦 Raw sidebar menu response:", res.data); 
         if (res.data.status) {
           const flatMenus: MenuItem[] = res.data.menus;
 
