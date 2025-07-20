@@ -1,8 +1,7 @@
-// ✅ Final ProjectDetail.tsx (with full modal + DnD integration)
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { getProjectById } from "@/services/projectService";
-import { createTask, updateTask } from "@/services/taskService";
+import { createTask, updateTask, moveTask } from "@/services/taskService"; // ✅ use moveTask here
 import { AxiosError } from "axios";
 import api from "@/api";
 import { format } from "date-fns";
@@ -64,25 +63,21 @@ const ProjectDetail = () => {
     }
   };
 
-    const handleTaskMove = async (
+  const handleTaskMove = async (
     taskId: number,
     fromBoardId: number,
     toBoardId: number,
+    newStatus: string,
     newIndex: number
   ) => {
     try {
-      await api.post(`/tasks/${taskId}/move`, {
-        from_board_id: fromBoardId,
-        to_board_id: toBoardId,
-        position: newIndex,
-      });
-
+      await moveTask(taskId, fromBoardId, toBoardId, newStatus, newIndex);
+      showSuccess("Task moved successfully");
       loadProject(); // ✅ refresh project after move
-    } catch  {
+    } catch {
       showError("Failed to move task");
     }
   };
-
 
   const handleEditTask = (task: Task, boardId: number) => {
     setEditingTask(task);

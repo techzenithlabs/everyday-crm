@@ -27,3 +27,24 @@ export const updateTask = async (
 
   return res.data;
 };
+
+export const moveTask = async (
+  taskId: number,
+  fromBoardId: number,
+  toBoardId: number,
+  status: string,
+  position: number
+): Promise<ApiResponse<Task>> => {
+  const res = await api.post(`/projects/tasks/${taskId}/move`, {
+    from_board_id: fromBoardId,
+    to_board_id: toBoardId,
+    status,
+    position,
+  });
+
+  if (!res.data.status) {
+    throw new Error(res.data.message || "Task move failed");
+  }
+
+  return res.data;
+};
