@@ -206,8 +206,8 @@ const TaskModal: React.FC<Props> = ({
             >
               <option value="todo">TODO</option>
               <option value="in_progress">IN PROGRESS</option>
-              <option value="review">REVIEW</option>
-              <option value="blocked">BLOCKED</option>
+              {/* <option value="review">REVIEW</option> */}
+              {/* <option value="blocked">BLOCKED</option> */}
               <option value="completed">COMPLETED</option>
             </select>
           </div>

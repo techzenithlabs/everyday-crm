@@ -15,9 +15,14 @@ import TaskModal from "@/components/kanban/TaskModal";
 import { showSuccess, showError } from "@/utils/ConfirmDialogHelpers";
 import { showErrorToast } from "@/utils/toastHelpers";
 
+// ✅ Extend Project type to include users
+interface ProjectWithUsers extends Project {
+  users: User[];
+}
+
 const JobsBoard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<ProjectWithUsers | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Partial<Task> | null>(null);
@@ -26,12 +31,10 @@ const JobsBoard: React.FC = () => {
     try {
       if (!id) return;
       const data = await getProjectById(Number(id));
-      setProject(data);
-
+      setProject(data as ProjectWithUsers); // ✅ Cast only once
       const jobsBoard = data.boards.find(
         (b: Board) => b.slug === "jobs" || b.title.toLowerCase().includes("job")
       );
-
       if (jobsBoard) {
         setTasks(jobsBoard.tasks ?? []);
       } else {
@@ -56,29 +59,27 @@ const JobsBoard: React.FC = () => {
     setEditModalOpen(true);
   };
 
- const handleSaveTask = async (updatedData: Partial<Task>) => {
-  if (!updatedData.id) return;
+  const handleSaveTask = async (updatedData: Partial<Task>) => {
+    if (!updatedData.id) return;
 
-  try {
-    const response = await updateTask(updatedData.id, updatedData);
-    const updated = response.data;
+    try {
+      const response = await updateTask(updatedData.id, updatedData);
+      const updated = response.data;
 
-    if (!updated) {
-      showError("No updated task returned from server");
-      return;
+      if (!updated) {
+        showError("No updated task returned from server");
+        return;
+      }
+
+      setTasks((prev) =>
+        prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t))
+      );
+
+      showSuccess("Task updated successfully");
+    } catch {
+      showError("Failed to update task");
     }
-
-    setTasks((prev) =>
-      prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t))
-    );
-
-    showSuccess("Task updated successfully");
-  } catch {
-    showError("Failed to update task");
-  }
-};
-
-
+  };
 
   const jobsBoardId =
     project?.boards.find(
@@ -103,10 +104,9 @@ const JobsBoard: React.FC = () => {
             isOpen={editModalOpen}
             task={selectedTask || undefined}
             boardId={jobsBoardId}
-            users={(project as any).users as User[]} // Safe cast if `users` not typed
+            users={project.users} // ✅ No "any", safe type
             onClose={() => setEditModalOpen(false)}
             onSave={(data) => handleSaveTask(data)}
-
           />
         </>
       )}

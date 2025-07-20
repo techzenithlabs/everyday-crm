@@ -116,12 +116,12 @@ const StatusBoard: React.FC<Props> = ({
           "Task Moved",
           `Task moved to ${statusLabels[backendTargetStatus] || backendTargetStatus}`
         );
-      } catch (err) {
-        console.error("❌ Failed to move task:", err);
-        showErrorToast("❌ Failed to move task.");
+      } catch {
+     
+        showErrorToast("Failed to move task.");
       }
     } else {
-      console.log("⚠️ Conditions not met. API not triggered.");
+      console.log("Conditions not met. API not triggered.");
     }
   };
 
@@ -190,8 +190,8 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({
   const { setNodeRef } = useDroppable({ id: `${boardId}-${status}` });
 
   return (
-    <div className="min-w-[300px] bg-white rounded shadow p-4 flex flex-col">
-      <h4 className="text-sm font-semibold mb-3">{label}</h4>
+    <div className="min-w-[300px] bg-gradient-to-br from-white via-[#f9fafb] to-white rounded-2xl shadow-lg p-4 flex flex-col border border-gray-100 hover:shadow-xl transition-shadow duration-200">
+      <h4 className="text-md font-bold mb-4 text-gray-800 tracking-wide">{label}</h4>
 
       <SortableContext
         items={tasks.map((task) => `${task.id}-${status}`)}

@@ -29,15 +29,15 @@ const SortableTask: React.FC<Props> = ({ id, task, boardId, onEditTask }) => {
   };
 
   const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case "high":
-        return "bg-red-500";
-      case "medium":
-        return "bg-yellow-400";
-      case "low":
-        return "bg-green-500";
+    switch (priority) {
+      case "High":
+        return "bg-red-500 text-white";
+      case "Medium":
+        return "bg-orange-400 text-white";
+      case "Low":
+        return "bg-blue-400 text-white";
       default:
-        return "bg-gray-300";
+        return "bg-gray-400 text-white";
     }
   };
 
